@@ -1,14 +1,14 @@
 # Bloom - Routing for WebJSX
 
 ```bash
-npm install bloom
+npm install bloom-router
 ```
 
 ## Usage
 
 ```ts
 import * as webjsx from "webjsx";
-import { Bloom } from "bloom"; // Adjust the path based on your setup
+import { Bloom } from "bloom-router"; // Adjust the path based on your setup
 
 // Instantiate Bloom by passing an element ID or an actual HTMLElement
 const bloom = new Bloom("app"); // Using element ID

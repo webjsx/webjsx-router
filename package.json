@@ -1,15 +1,15 @@
 {
   "name": "bloom-router",
-  "private": true,
-  "dependencies": {
-    "webjsx": "^0.0.20"
-  },
+  "public": true,
   "type": "module",
   "scripts": {
     "clean": "rm -rf ./dist",
     "build": "npm run clean && npx tsc",
     "test": "npm run build && npx mocha \"dist/test/**/*.test.js\"",
     "test:grep": "npm run build && npx mocha \"dist/test/**/*.test.js\" --grep"
+  },
+  "dependencies": {
+    "webjsx": "^0.0.20"
   },
   "devDependencies": {
     "@types/chai": "^4.3.19",
