@@ -1,8 +1,10 @@
 {
   "name": "bloom-router",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "public": true,
+  "main": "./dist/index.js",
   "type": "module",
+  "author": "Jeswin Kumar<jeswinpk@agilehead.com>",
   "scripts": {
     "clean": "rm -rf ./dist",
     "build": "npm run clean && npx tsc",
