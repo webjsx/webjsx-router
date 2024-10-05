@@ -1,5 +1,6 @@
 {
   "name": "bloom-router",
+  "version": "0.0.1",
   "public": true,
   "type": "module",
   "scripts": {
