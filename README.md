@@ -71,6 +71,7 @@ bloom.page("/city", async function* cityPage() {
 
 // Start the App
 bloom.goto("/home"); // Navigate to the home page
+```
 
 ## Running Tests
 
