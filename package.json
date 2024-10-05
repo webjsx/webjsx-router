@@ -1,6 +1,6 @@
 {
   "name": "bloom-router",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "public": true,
   "type": "module",
   "scripts": {
@@ -10,7 +10,7 @@
     "test:grep": "npm run build && npx mocha \"dist/test/**/*.test.js\" --grep"
   },
   "dependencies": {
-    "webjsx": "^0.0.20"
+    "webjsx": "*"
   },
   "devDependencies": {
     "@types/chai": "^4.3.19",
