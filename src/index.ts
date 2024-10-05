@@ -11,6 +11,19 @@ export class Bloom {
     null;
   private updatePromise: Promise<void> | null = null;
   private resolveUpdate: (() => void) | null = null;
+  private appContainer: HTMLElement;
+
+  constructor(elementOrId: string | HTMLElement) {
+    if (typeof elementOrId === "string") {
+      const el = document.getElementById(elementOrId);
+      if (!el) {
+        throw new Error(`Element with ID ${elementOrId} not found`);
+      }
+      this.appContainer = el;
+    } else {
+      this.appContainer = elementOrId;
+    }
+  }
 
   // Register a route with a pattern and its corresponding page generator
   public page(pattern: string, pageGenerator: PageGenerator): void {
@@ -83,10 +96,7 @@ export class Bloom {
       if (done) break;
 
       // Apply the new virtual DOM node to the actual DOM
-      const appContainer = document.getElementById("app");
-      if (appContainer) {
-        webjsx.applyDiff(appContainer, vdom);
-      }
+      webjsx.applyDiff(this.appContainer, vdom);
 
       this.resolveUpdate!();
 

@@ -9,7 +9,11 @@ describe("Bloom", () => {
 
   beforeEach(() => {
     setupJSDOM();
-    bloom = new Bloom();
+    // Fix: Pass the element ID or element to Bloom's constructor
+    const appElement = document.createElement("div");
+    appElement.id = "app";
+    document.body.appendChild(appElement);
+    bloom = new Bloom(appElement); // Pass the element directly
   });
 
   afterEach(() => {
