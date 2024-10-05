@@ -12,9 +12,11 @@ install();
  * @returns The JSDOM instance.
  */
 export function setupJSDOM(
-  html: string = `<!DOCTYPE html><body><div id="app"></div></body>`
+  html: string = `<!DOCTYPE html><body><div id="app"></div></body>`,
+  url: string = "http://localhost"
 ) {
   const dom = new JSDOM(html, {
+    url,
     runScripts: "dangerously",
     resources: "usable",
   });
@@ -35,6 +37,7 @@ export function setupJSDOM(
   // e.g., Event, CustomEvent, etc.
   globalThis.Event = window.Event;
   globalThis.CustomEvent = window.CustomEvent;
+  global.history = window.history;
 
   return dom;
 }

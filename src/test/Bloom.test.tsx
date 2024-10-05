@@ -62,7 +62,7 @@ describe("Bloom", () => {
   });
 
   // RENDERING TESTS
-  describe("Rendering", () => {
+  describe("Rendering", async () => {
     it("should render the initial page content", async () => {
       bloom.page("/home", async function* () {
         yield <div id="home">Home Page</div>;

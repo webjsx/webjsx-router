@@ -23,6 +23,11 @@ export class Bloom {
     } else {
       this.appContainer = elementOrId;
     }
+
+    // Listen for popstate event and handle navigation
+    window.addEventListener("popstate", () => {
+      this.handleNavigation(location.pathname + location.search);
+    });
   }
 
   // Register a route with a pattern and its corresponding page generator
@@ -30,11 +35,26 @@ export class Bloom {
     this.routes.push({ pattern, pageGenerator });
   }
 
-  // Initialize updatePromise which controls when to call the next VNode
-  private resetUpdatePromise(): void {
-    this.updatePromise = new Promise((resolve) => {
-      this.resolveUpdate = resolve;
-    });
+  // Manage the history state via pushState, but do not handle routing
+  public async goto(path: string): Promise<void> {
+    history.pushState(null, "", path); // Push the state into the history stack
+    await this.handleNavigation(path); // Then handle the routing logic
+    return (await this.updatePromise) as void;
+  }
+
+  // Handle routing and rendering logic (called by goto or popstate)
+  private async handleNavigation(path: string) {
+    const [routePath, query] = path.split("?");
+    const match = this.matchRoute(routePath);
+
+    if (match) {
+      const { pageGenerator, params } = match;
+      this.currentIterator = pageGenerator(params, query || ""); // Pass params and query to generator
+      this.resetUpdatePromise(); // Initialize the promise for the first render
+      this.startRenderingLoop();
+    } else {
+      console.error(`No route matches the path: ${path}`);
+    }
   }
 
   // Match a URL against the route patterns
@@ -63,20 +83,11 @@ export class Bloom {
     return null; // No match found
   }
 
-  // Navigate to a specific route and start the rendering loop
-  public async goto(path: string): Promise<void> {
-    const [routePath, query] = path.split("?");
-    const match = this.matchRoute(routePath);
-
-    if (match) {
-      const { pageGenerator, params } = match;
-      this.currentIterator = pageGenerator(params, query || ""); // Pass params and query to generator
-      this.resetUpdatePromise(); // Initialize the promise for the first render
-      this.startRenderingLoop();
-      return this.updatePromise as Promise<void>;
-    } else {
-      console.error(`No route matches the path: ${path}`);
-    }
+  // Initialize updatePromise which controls when to call the next VNode
+  private resetUpdatePromise(): void {
+    this.updatePromise = new Promise((resolve) => {
+      this.resolveUpdate = resolve;
+    });
   }
 
   // Signal the internal promise to continue to the next generator step

@@ -1,5 +1,5 @@
 {
-  "name": "bloom",
+  "name": "bloom-router",
   "private": true,
   "dependencies": {
     "webjsx": "^0.0.20"
