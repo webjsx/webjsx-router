@@ -1,14 +1,11 @@
 import * as webjsx from "webjsx";
-
-type PageGenerator = (
-  params: Record<string, string>,
-  query: string
-) => AsyncGenerator<webjsx.VNode, void, void>;
+import { ComponentGenerator, ComponentOptions, PageGenerator } from "./types.js";
+import { defineComponent } from "./component.js";
+import { Router } from "./router.js";
 
 export class Bloom {
-  private routes: { pattern: string; pageGenerator: PageGenerator }[] = [];
-  private currentIterator: AsyncGenerator<webjsx.VNode, void, void> | null =
-    null;
+  private router: Router = new Router();
+  private currentIterator: AsyncGenerator<webjsx.VNode, void, void> | null = null;
   private updatePromise: Promise<void> | null = null;
   private resolveUpdate: (() => void) | null = null;
   private appContainer: HTMLElement;
@@ -24,97 +21,70 @@ export class Bloom {
       this.appContainer = elementOrId;
     }
 
-    // Listen for popstate event and handle navigation
     window.addEventListener("popstate", () => {
       this.handleNavigation(location.pathname + location.search);
     });
   }
 
-  // Register a route with a pattern and its corresponding page generator
-  public page(pattern: string, pageGenerator: PageGenerator): void {
-    this.routes.push({ pattern, pageGenerator });
+  public component(
+    name: string,
+    generator: ComponentGenerator,
+    options: ComponentOptions = {}
+  ): void {
+    defineComponent(name, generator, options);
   }
 
-  // Manage the history state via pushState, but do not handle routing
+  public page(pattern: string, pageGenerator: PageGenerator): void {
+    this.router.addRoute(pattern, pageGenerator);
+  }
+
   public async goto(path: string): Promise<void> {
-    history.pushState(null, "", path); // Push the state into the history stack
-    await this.handleNavigation(path); // Then handle the routing logic
+    history.pushState(null, "", path);
+    await this.handleNavigation(path);
     return (await this.updatePromise) as void;
   }
 
-  // Handle routing and rendering logic (called by goto or popstate)
   private async handleNavigation(path: string) {
     const [routePath, query] = path.split("?");
-    const match = this.matchRoute(routePath);
+    const match = this.router.matchRoute(routePath);
 
     if (match) {
       const { pageGenerator, params } = match;
-      this.currentIterator = pageGenerator(params, query || ""); // Pass params and query to generator
-      this.resetUpdatePromise(); // Initialize the promise for the first render
+      this.currentIterator = pageGenerator(params, query || "");
+      this.resetUpdatePromise();
       this.startRenderingLoop();
     } else {
       console.error(`No route matches the path: ${path}`);
     }
   }
 
-  // Match a URL against the route patterns
-  private matchRoute(
-    path: string
-  ): { pageGenerator: PageGenerator; params: Record<string, string> } | null {
-    for (const { pattern, pageGenerator } of this.routes) {
-      const regex = new RegExp(
-        "^" + pattern.replace(/:[^\s/]+/g, "([\\w-]+)") + "$"
-      );
-      const match = path.match(regex);
-      if (match) {
-        // Extract parameter names from the route pattern
-        const keys = [...pattern.matchAll(/:([^\s/]+)/g)].map((m) => m[1]);
-        // Map matched segments to parameter names
-        const params = keys.reduce(
-          (acc: Record<string, string>, key: string, idx: number) => {
-            acc[key] = match[idx + 1]; // The first match is the whole path, so params start from index 1
-            return acc;
-          },
-          {}
-        );
-        return { pageGenerator, params };
-      }
-    }
-    return null; // No match found
-  }
-
-  // Initialize updatePromise which controls when to call the next VNode
   private resetUpdatePromise(): void {
     this.updatePromise = new Promise((resolve) => {
       this.resolveUpdate = resolve;
     });
   }
 
-  // Signal the internal promise to continue to the next generator step
   public render(): void {
     if (this.resolveUpdate) {
-      this.resolveUpdate(); // Resolve the promise to signal that rendering can proceed
+      this.resolveUpdate();
     }
   }
 
-  // Rendering loop: pulls from the generator and renders the VNode
   private async startRenderingLoop(): Promise<void> {
     while (this.currentIterator) {
-      // Get the next VNode from the generator
       const { value: vdom, done } = await this.currentIterator.next();
 
-      // If the generator is done, exit the loop
       if (done) break;
 
-      // Apply the new virtual DOM node to the actual DOM
       webjsx.applyDiff(this.appContainer, vdom);
 
       this.resolveUpdate!();
 
-      this.resetUpdatePromise(); // Reset promise for the next iteration
+      this.resetUpdatePromise();
 
-      // And wait.
       await this.updatePromise;
     }
   }
 }
+
+export * from "./types.js";
