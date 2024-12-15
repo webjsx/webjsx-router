@@ -324,7 +324,7 @@ describe("BloomComponent", () => {
               <button onclick={incrementParent} data-testid="parent-button">
                 +
               </button>
-              <child-counter as any id="1" initialCount="0" />
+              <child-counter id="1" initialCount="0" />
               <child-counter id="2" initialCount="5" />
             </div>
           );
