@@ -12,6 +12,7 @@ export function defineComponent(
     private _isConnected = false;
     private resolveUpdate: (() => void) | null = null;
     private currentVNode: webjsx.VNode | null = null;
+    private initialAttributes: Record<string, string> = {};
 
     constructor() {
       super();
@@ -25,7 +26,10 @@ export function defineComponent(
     }
 
     private getAttributes(): Record<string, string> {
-      const attributes: Record<string, string> = {};
+      const attributes: Record<string, string> = {
+        ...this.initialAttributes,
+      };
+
       for (const attr of this.attributes) {
         attributes[attr.name] = attr.value;
       }
@@ -78,6 +82,12 @@ export function defineComponent(
       if (this._isConnected) {
         await this.resetIterator();
       }
+    }
+
+    // Add support for setting attributes via JSX
+    setAttribute(name: string, value: string) {
+      this.initialAttributes[name] = value;
+      super.setAttribute(name, value);
     }
   }
 

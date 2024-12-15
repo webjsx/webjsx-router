@@ -28,7 +28,7 @@ describe("BloomComponent", () => {
   });
 
   it("should create a custom element with the specified name", () => {
-    bloom.component("test-component", async function* (attributes) {
+    bloom.component("test-component", async function* (component, attributes) {
       yield <div>Test Component</div>;
     });
 
@@ -40,7 +40,7 @@ describe("BloomComponent", () => {
   });
 
   it("should automatically prefix component name if no hyphen provided", () => {
-    bloom.component("test", async function* (attributes) {
+    bloom.component("test", async function* (component, attributes) {
       yield <div>Test Component</div>;
     });
 
@@ -52,7 +52,7 @@ describe("BloomComponent", () => {
   });
 
   it("should render content from generator", async () => {
-    bloom.component("test-content", async function* (attributes) {
+    bloom.component("test-content", async function* (component, attributes) {
       yield <div class="content">Generated Content</div>;
     });
 
@@ -70,7 +70,7 @@ describe("BloomComponent", () => {
   it("should support shadow DOM", async () => {
     bloom.component(
       "shadow-test",
-      async function* (attributes) {
+      async function* (component, attributes) {
         yield <div class="shadow-content">Shadow Content</div>;
       },
       { shadow: "open" }
@@ -94,7 +94,6 @@ describe("BloomComponent", () => {
     let receivedAttributes: Record<string, string> | null = null;
 
     bloom.component("attr-test", async function* (component, attributes) {
-      // Save only the attributes
       receivedAttributes = attributes;
       yield <div>Test</div>;
     });
@@ -119,7 +118,6 @@ describe("BloomComponent", () => {
     bloom.component(
       "attr-update-test",
       async function* (component, attributes) {
-        // Save only the attributes
         receivedAttributes.push({ ...attributes });
         yield <div>Test</div>;
       },
@@ -142,7 +140,7 @@ describe("BloomComponent", () => {
   it("should clean up when disconnected", async () => {
     let renderCount = 0;
 
-    bloom.component("cleanup-test", async function* (attributes) {
+    bloom.component("cleanup-test", async function* (component, attributes) {
       while (true) {
         renderCount++;
         yield <div>Render {renderCount}</div>;
@@ -192,7 +190,29 @@ describe("BloomComponent", () => {
       }
     });
 
-    // Rest of test remains the same
+    const element = document.createElement("state-test");
+    document.body.appendChild(element);
+
+    // Wait for initial render
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const getCount = () =>
+      element.querySelector('[data-testid="count"]')!.textContent;
+    const button = element.querySelector(
+      '[data-testid="button"]'
+    ) as HTMLElement;
+
+    expect(getCount()).to.equal("0");
+
+    button.click();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(getCount()).to.equal("1");
+
+    button.click();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(getCount()).to.equal("2");
+
+    expect(renderCount).to.equal(2);
   });
 
   it("should handle multiple interactive elements", async () => {
@@ -232,7 +252,38 @@ describe("BloomComponent", () => {
       }
     );
 
-    // Rest of test remains the same
+    const element = document.createElement("multi-interactive");
+    document.body.appendChild(element);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const getCount = () =>
+      element.querySelector('[data-testid="count"]')!.textContent;
+    const getText = () =>
+      element.querySelector('[data-testid="text"]')!.textContent;
+    const button = element.querySelector(
+      '[data-testid="button"]'
+    ) as HTMLElement;
+    const input = element.querySelector(
+      '[data-testid="input"]'
+    ) as HTMLInputElement;
+
+    expect(getCount()).to.equal("0");
+    expect(getText()).to.equal("");
+
+    button.click();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(getCount()).to.equal("1");
+
+    input.value = "Hello";
+    input.dispatchEvent(new Event("input"));
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(getText()).to.equal("Hello");
+
+    button.click();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(getCount()).to.equal("2");
+    expect(getText()).to.equal("Hello");
   });
 
   it("should handle nested components with independent state", async () => {
@@ -280,5 +331,49 @@ describe("BloomComponent", () => {
         }
       }
     );
+
+    const element = document.createElement("parent-component");
+    document.body.appendChild(element);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const getParentCount = () =>
+      element.querySelector('[data-testid="parent-count"]')!.textContent;
+    const getChild1Count = () =>
+      element.querySelector('[data-testid="count-1"]')!.textContent;
+    const getChild2Count = () =>
+      element.querySelector('[data-testid="count-2"]')!.textContent;
+
+    const parentButton = element.querySelector(
+      '[data-testid="parent-button"]'
+    ) as HTMLElement;
+    const child1Button = element.querySelector(
+      '[data-testid="button-1"]'
+    ) as HTMLElement;
+    const child2Button = element.querySelector(
+      '[data-testid="button-2"]'
+    ) as HTMLElement;
+
+    expect(getParentCount()).to.equal("0");
+    expect(getChild1Count()).to.equal("0");
+    expect(getChild2Count()).to.equal("5");
+
+    parentButton.click();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(getParentCount()).to.equal("1");
+    expect(getChild1Count()).to.equal("0");
+    expect(getChild2Count()).to.equal("5");
+
+    child1Button.click();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(getParentCount()).to.equal("1");
+    expect(getChild1Count()).to.equal("1");
+    expect(getChild2Count()).to.equal("5");
+
+    child2Button.click();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(getParentCount()).to.equal("1");
+    expect(getChild1Count()).to.equal("1");
+    expect(getChild2Count()).to.equal("6");
   });
 });
