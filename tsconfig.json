@@ -9,9 +9,8 @@
     "moduleResolution": "NodeNext",
     "sourceMap": true,
     "strict": true,
-    "jsx": "react",
-    "jsxFactory": "webjsx.createElement",
-    "jsxFragmentFactory": "webjsx.Fragment"
+    "jsx": "react-jsx",
+    "jsxImportSource": "webjsx"
   },
   "include": ["./src/**/*"]
 }

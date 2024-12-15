@@ -29,6 +29,7 @@ export function setupJSDOM(
   (globalThis as any).navigator = {
     userAgent: "node.js",
   };
+  globalThis.Element = window.Element;
   globalThis.HTMLElement = window.HTMLElement;
   globalThis.Node = window.Node;
   globalThis.customElements = window.customElements;
