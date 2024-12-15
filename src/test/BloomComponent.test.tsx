@@ -280,7 +280,5 @@ describe("BloomComponent", () => {
         }
       }
     );
-
-    // Rest of test remains the same
   });
 });
