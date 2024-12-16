@@ -1,6 +1,6 @@
 {
   "name": "bloom-router",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "public": true,
   "main": "./dist/index.js",
   "type": "module",
