@@ -376,4 +376,82 @@ describe("BloomComponent", () => {
     expect(getChild1Count()).to.equal("1");
     expect(getChild2Count()).to.equal("6");
   });
+
+  it("should update child component when parent passes new attributes", async () => {
+    // Child component that displays passed attributes
+    bloom.component(
+      "display-attrs",
+      async function* (component, attributes) {
+        while (true) {
+          yield (
+            <div>
+              <span data-testid="name">{attributes.name}</span>
+              <span data-testid="value">{attributes.value}</span>
+            </div>
+          );
+        }
+      },
+      {
+        observedAttributes: ["name", "value"], // Important: declare which attributes to observe
+      }
+    );
+
+    // Parent component that updates child attributes
+    bloom.component("parent-updater", async function* (component, attributes) {
+      let currentValue = 0;
+
+      const updateValue = () => {
+        currentValue++;
+        component.render();
+      };
+
+      while (true) {
+        yield (
+          <div>
+            <display-attrs
+              name="counter"
+              value={currentValue.toString()}
+              data-testid="display"
+            />
+            <button onclick={updateValue} data-testid="update">
+              Update
+            </button>
+          </div>
+        );
+      }
+    });
+
+    // Create and mount parent component
+    const element = document.createElement("parent-updater");
+    document.body.appendChild(element);
+
+    // Wait for initial render
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // Get child component
+    const childElement = element.querySelector('[data-testid="display"]')!;
+
+    // Get elements and verify initial state
+    const getName = () =>
+      childElement.querySelector('[data-testid="name"]')!.textContent;
+    const getValue = () =>
+      childElement.querySelector('[data-testid="value"]')!.textContent;
+    const button = element.querySelector(
+      '[data-testid="update"]'
+    ) as HTMLElement;
+
+    // Verify initial state
+    expect(getName()).to.equal("counter");
+    expect(getValue()).to.equal("0");
+
+    // Click and verify update
+    button.click();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(getValue()).to.equal("1");
+
+    // Click again and verify second update
+    button.click();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(getValue()).to.equal("2");
+  });
 });

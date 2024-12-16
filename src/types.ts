@@ -14,4 +14,5 @@ export type ComponentGenerator = (
 export interface ComponentOptions {
   shadow?: "open" | "closed";
   observedAttributes?: string[];
+  styles?: string;
 }
