@@ -19,7 +19,7 @@ const app = new Bloom("#app");
 // Define component
 app.component("counter-app", async function* (component, attributes) {
   let count = 0;
-  
+
   const increment = () => {
     count++;
     component.render();
@@ -36,7 +36,7 @@ app.component("counter-app", async function* (component, attributes) {
 });
 
 // Use in HTML
-<counter-app></counter-app>
+<counter-app></counter-app>;
 ```
 
 ## Components
@@ -55,7 +55,7 @@ app.component("user-form", async function* (component, attributes) {
   };
 
   const updateEmail = (e: Event) => {
-    email = (e.target as HTMLInputElement).value; 
+    email = (e.target as HTMLInputElement).value;
     component.render();
   };
 
@@ -67,14 +67,14 @@ app.component("user-form", async function* (component, attributes) {
   while (true) {
     yield (
       <form onsubmit={submit}>
-        <input 
+        <input
           type="text"
           value={name}
           oninput={updateName}
           placeholder="Name"
         />
         <input
-          type="email" 
+          type="email"
           value={email}
           oninput={updateEmail}
           placeholder="Email"
@@ -90,122 +90,132 @@ app.component("user-form", async function* (component, attributes) {
 
 ```typescript
 // Component that observes attributes
-app.component("hello-user", async function* (component, attributes) {
-  while (true) {
-    yield (
-      <div>
-        Hello {attributes.name || "Anonymous"}!
-      </div>
-    );
+app.component(
+  "hello-user",
+  async function* (component, attributes) {
+    while (true) {
+      yield <div>Hello {attributes.name || "Anonymous"}!</div>;
+    }
+  },
+  {
+    observedAttributes: ["name"],
   }
-}, {
-  observedAttributes: ["name"]
-});
+);
 
 // Usage
-<hello-user name="John"></hello-user>
+<hello-user name="John"></hello-user>;
 ```
 
 ### Shadow DOM
 
 ```typescript
-app.component("shadow-card", async function* (component, attributes) {
-  while (true) {
-    yield (
-      <div class="card">
-        <style>
-          {`
+app.component(
+  "shadow-card",
+  async function* (component, attributes) {
+    while (true) {
+      yield (
+        <div class="card">
+          <style>
+            {`
             .card {
               border: 1px solid #ccc;
               padding: 1rem;
             }
           `}
-        </style>
-        <slot>Default Content</slot>
-      </div>
-    );
+          </style>
+          <slot>Default Content</slot>
+        </div>
+      );
+    }
+  },
+  {
+    shadow: "open", // or "closed"
   }
-}, { 
-  shadow: "open" // or "closed"
-});
+);
 
 // Usage
 <shadow-card>
   <h2>Card Title</h2>
   <p>Card content</p>
-</shadow-card>
+</shadow-card>;
 ```
 
 ### Slots
 
 ```typescript
 // Component with named slots
-app.component("layout-component", async function* (component, attributes) {
-  while (true) {
-    yield (
-      <div class="layout">
-        <header>
-          <slot name="header">Default Header</slot>
-        </header>
-        <main>
-          <slot>Main Content</slot>
-        </main>
-        <footer>
-          <slot name="footer">Default Footer</slot>
-        </footer>
-      </div>
-    );
-  }
-}, { shadow: "open" });
+app.component(
+  "layout-component",
+  async function* (component, attributes) {
+    while (true) {
+      yield (
+        <div class="layout">
+          <header>
+            <slot name="header">Default Header</slot>
+          </header>
+          <main>
+            <slot>Main Content</slot>
+          </main>
+          <footer>
+            <slot name="footer">Default Footer</slot>
+          </footer>
+        </div>
+      );
+    }
+  },
+  { shadow: "open" }
+);
 
 // Usage
 <layout-component>
   <h1 slot="header">My App</h1>
   <div>Main content here</div>
   <p slot="footer">Footer content</p>
-</layout-component>
+</layout-component>;
 ```
 
 ### Nested Components
 
 ```typescript
 // Child component
-app.component("todo-item", async function* (component, attributes) {
-  const toggle = () => {
-    component.setAttribute("completed", 
-      attributes.completed === "true" ? "false" : "true"
-    );
-  };
+app.component(
+  "todo-item",
+  async function* (component, attributes) {
+    const toggle = () => {
+      component.setAttribute(
+        "completed",
+        attributes.completed === "true" ? "false" : "true"
+      );
+    };
 
-  while (true) {
-    yield (
-      <li 
-        class={attributes.completed === "true" ? "completed" : ""}
-        onclick={toggle}
-      >
-        {attributes.text}
-      </li>
-    );
+    while (true) {
+      yield (
+        <li
+          class={attributes.completed === "true" ? "completed" : ""}
+          onclick={toggle}
+        >
+          {attributes.text}
+        </li>
+      );
+    }
+  },
+  {
+    observedAttributes: ["completed", "text"],
   }
-}, {
-  observedAttributes: ["completed", "text"]
-});
+);
 
 // Parent component
 app.component("todo-list", async function* (component, attributes) {
   const items = [
     { id: 1, text: "Learn Bloom", completed: false },
-    { id: 2, text: "Build App", completed: true }
+    { id: 2, text: "Build App", completed: true },
   ];
 
   while (true) {
     yield (
       <ul>
-        {items.map(item => (
-          <todo-item
-            text={item.text}
-            completed={item.completed.toString()}
-          />
+        {items.map((item) => (
+          <todo-item text={item.text} completed={item.completed.toString()} />
         ))}
       </ul>
     );
@@ -285,7 +295,7 @@ import { Bloom } from "bloom-router";
 
 describe("Counter Component", () => {
   let bloom: Bloom;
-  
+
   beforeEach(() => {
     document.body.innerHTML = '<div id="app"></div>';
     bloom = new Bloom("#app");
@@ -294,7 +304,7 @@ describe("Counter Component", () => {
   it("should increment counter", async () => {
     bloom.component("test-counter", async function* (component) {
       let count = 0;
-      
+
       const increment = () => {
         count++;
         component.render();
@@ -313,16 +323,16 @@ describe("Counter Component", () => {
     const element = document.createElement("test-counter");
     document.body.appendChild(element);
 
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     const count = element.querySelector('[data-testid="count"]');
     const button = element.querySelector("button");
 
     expect(count!.textContent).to.equal("0");
-    
+
     button!.click();
-    await new Promise(resolve => setTimeout(resolve, 0));
-    
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     expect(count!.textContent).to.equal("1");
   });
 });
@@ -394,20 +404,17 @@ declare class BloomComponent extends HTMLElement {
 // Framework Instance
 declare class Bloom {
   constructor(elementOrId: string | HTMLElement);
-  
+
   component(
     name: string,
     generator: ComponentGenerator,
     options?: ComponentOptions
   ): void;
-  
-  page(
-    pattern: string,
-    pageGenerator: PageGenerator
-  ): void;
-  
+
+  page(pattern: string, pageGenerator: PageGenerator): void;
+
   goto(path: string): Promise<void>;
-  
+
   render(): void;
 }
 ```
@@ -415,6 +422,7 @@ declare class Bloom {
 ## Complete Examples
 
 ### Todo App
+
 ```typescript
 interface Todo {
   id: number;
@@ -429,21 +437,22 @@ app.component("todo-app", async function* (component) {
   const addTodo = (e: Event) => {
     e.preventDefault();
     if (!newTodo.trim()) return;
-    
-    todos = [...todos, {
-      id: Date.now(),
-      text: newTodo,
-      completed: false
-    }];
+
+    todos = [
+      ...todos,
+      {
+        id: Date.now(),
+        text: newTodo,
+        completed: false,
+      },
+    ];
     newTodo = "";
     component.render();
   };
 
   const toggleTodo = (id: number) => {
-    todos = todos.map(todo =>
-      todo.id === id 
-        ? { ...todo, completed: !todo.completed }
-        : todo
+    todos = todos.map((todo) =>
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
     );
     component.render();
   };
@@ -457,7 +466,7 @@ app.component("todo-app", async function* (component) {
     yield (
       <div class="todo-app">
         <h1>Todo List</h1>
-        
+
         <form onsubmit={addTodo}>
           <input
             type="text"
@@ -469,7 +478,7 @@ app.component("todo-app", async function* (component) {
         </form>
 
         <ul>
-          {todos.map(todo => (
+          {todos.map((todo) => (
             <li
               key={todo.id}
               class={todo.completed ? "completed" : ""}
@@ -482,7 +491,7 @@ app.component("todo-app", async function* (component) {
 
         <div class="todo-stats">
           {todos.length} items,
-          {todos.filter(t => !t.completed).length} remaining
+          {todos.filter((t) => !t.completed).length} remaining
         </div>
       </div>
     );
@@ -491,6 +500,7 @@ app.component("todo-app", async function* (component) {
 ```
 
 ### Blog with Routing
+
 ```typescript
 interface Post {
   id: number;
@@ -502,13 +512,13 @@ interface Post {
 app.component("post-list", async function* (component) {
   const posts: Post[] = [
     { id: 1, title: "First Post", content: "..." },
-    { id: 2, title: "Second Post", content: "..." }
+    { id: 2, title: "Second Post", content: "..." },
   ];
 
   while (true) {
     yield (
       <div class="posts">
-        {posts.map(post => (
+        {posts.map((post) => (
           <article>
             <h2>{post.title}</h2>
             <a href={`/posts/${post.id}`}>Read more</a>
@@ -520,25 +530,29 @@ app.component("post-list", async function* (component) {
 });
 
 // Single Post Component
-app.component("post-view", async function* (component, attributes) {
-  const post = {
-    id: parseInt(attributes.id),
-    title: `Post ${attributes.id}`,
-    content: "..."
-  };
+app.component(
+  "post-view",
+  async function* (component, attributes) {
+    const post = {
+      id: parseInt(attributes.id),
+      title: `Post ${attributes.id}`,
+      content: "...",
+    };
 
-  while (true) {
-    yield (
-      <article>
-        <h1>{post.title}</h1>
-        <div class="content">{post.content}</div>
-        <a href="/posts">Back to posts</a>
-      </article>
-    );
+    while (true) {
+      yield (
+        <article>
+          <h1>{post.title}</h1>
+          <div class="content">{post.content}</div>
+          <a href="/posts">Back to posts</a>
+        </article>
+      );
+    }
+  },
+  {
+    observedAttributes: ["id"],
   }
-}, {
-  observedAttributes: ["id"]
-});
+);
 
 // Routes
 app.page("/posts", async function* () {
