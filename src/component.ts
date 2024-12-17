@@ -83,10 +83,14 @@ export function defineComponent<
 
       this.props = { ...initialProps };
 
-      // Initialize the internal props
-      for (const [key, value] of Object.entries(initialProps)) {
-        if (isSerializableProp(value)) {
-          this.setAttribute(key, serializeProp(value));
+      // Initialize attributes for all serializable props
+      for (const key of observedProps) {
+        if (this.hasAttribute(key)) {
+          const value = this.getAttribute(key);
+          (this.props as any)[key] = deserializeAttribute(
+            value,
+            initialProps[key as keyof TProps]
+          );
         }
       }
 
@@ -125,8 +129,8 @@ export function defineComponent<
     ) {
       if (oldValue === newValue) return;
 
-      const currentPropValue = this.props[name as keyof TProps];
-      if (name in this.props && isSerializableProp(currentPropValue)) {
+      const currentPropValue = initialProps[name as keyof TProps];
+      if (observedProps.has(name)) {
         const parsedValue = deserializeAttribute(newValue, currentPropValue);
         (this.props as any)[name] = parsedValue;
 
