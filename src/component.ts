@@ -59,13 +59,13 @@ export function defineComponent<
     extends HTMLElement
     implements BloomComponent<TProps>
   {
-    private iterator: AsyncGenerator<webjsx.VNode, void, void> | null = null;
+    private iterator: AsyncGenerator<webjsx.VNode, void, void>;
     private root: ShadowRoot | HTMLElement;
     private _isConnected = false;
     private resolveUpdate: (() => void) | null = null;
     private currentVNode: webjsx.VNode | null = null;
     private props: TProps;
-    private propsProxy: TProps;
+    private renderLoopPromise: Promise<void> | null = null;
 
     constructor() {
       super();
@@ -81,10 +81,8 @@ export function defineComponent<
         this.root = this;
       }
 
-      // Initialize props from initialProps
       this.props = { ...initialProps };
 
-      // Initialize props from attributes
       Array.from(this.attributes).forEach((attr) => {
         const value = attr.value;
         const key = attr.name;
@@ -94,16 +92,7 @@ export function defineComponent<
         }
       });
 
-      // Create props proxy
-      this.propsProxy = new Proxy({} as TProps, {
-        get: (_, prop: string) => {
-          return this.props[prop as keyof TProps];
-        },
-        set: (_, prop: string, value) => {
-          this.set(prop as keyof TProps, value);
-          return true;
-        },
-      });
+      this.iterator = generator(this, this.props);
     }
 
     get connected(): boolean {
@@ -112,12 +101,12 @@ export function defineComponent<
 
     async connectedCallback() {
       this._isConnected = true;
-      await this.resetIterator();
+      await this.startRenderLoop();
     }
 
     disconnectedCallback() {
       this._isConnected = false;
-      this.iterator = null;
+      this.resolveUpdate?.();
       this.resolveUpdate = null;
       this.currentVNode = null;
     }
@@ -165,13 +154,8 @@ export function defineComponent<
       }
     }
 
-    private async resetIterator() {
-      this.iterator = generator(this, this.propsProxy);
-      await this.startRenderLoop();
-    }
-
     private async startRenderLoop() {
-      while (this.iterator && this._isConnected) {
+      while (this._isConnected) {
         const { value: vdom, done } = await this.iterator.next();
 
         if (done || !this._isConnected) break;

@@ -46,14 +46,16 @@ describe("BloomComponent - Attributes", () => {
 
   it("should update attributes object when attributes change", async () => {
     let receivedAttributes: Record<string, string>[] = [];
+    let props: { foo: string | undefined } | undefined = undefined;
 
     bloom.component(
       "attr-update-test",
       async function* (component, attributes) {
+        props = attributes;
         receivedAttributes.push({ ...attributes });
         yield <div>Test</div>;
       },
-      {}
+      { foo: "" }
     );
 
     const element = document.createElement("attr-update-test");
@@ -64,6 +66,6 @@ describe("BloomComponent - Attributes", () => {
     element.setAttribute("foo", "baz");
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(receivedAttributes).to.deep.equal([{ foo: "bar" }, { foo: "baz" }]);
+    expect(props).to.deep.equal({ foo: "baz" });
   });
 });
