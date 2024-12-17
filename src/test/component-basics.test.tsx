@@ -66,17 +66,17 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
       while (true) {
         renderCount++;
         yield <div>Render {renderCount}</div>;
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 0));
       }
     });
 
     const element = document.createElement("cleanup-test");
     document.body.appendChild(element);
 
-    await new Promise((resolve) => setTimeout(resolve, 30));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     const countAtRemoval = renderCount;
     element.remove();
-    await new Promise((resolve) => setTimeout(resolve, 30));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(renderCount).to.equal(countAtRemoval);
   });

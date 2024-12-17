@@ -58,11 +58,11 @@ describe("BloomComponent - State & Interactivity", () => {
     expect(getCount()).to.equal("0");
 
     button.click();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(getCount()).to.equal("1");
 
     button.click();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(getCount()).to.equal("2");
 
     expect(renderCount).to.equal(2);
@@ -125,16 +125,16 @@ describe("BloomComponent - State & Interactivity", () => {
     expect(getText()).to.equal("");
 
     button.click();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(getCount()).to.equal("1");
 
     input.value = "Hello";
     input.dispatchEvent(new Event("input"));
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(getText()).to.equal("Hello");
 
     button.click();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(getCount()).to.equal("2");
     expect(getText()).to.equal("Hello");
   });

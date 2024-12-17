@@ -93,19 +93,19 @@ describe("BloomComponent - Nested Components", () => {
     expect(getChild2Count()).to.equal("5");
 
     parentButton.click();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(getParentCount()).to.equal("1");
     expect(getChild1Count()).to.equal("0");
     expect(getChild2Count()).to.equal("5");
 
     child1Button.click();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(getParentCount()).to.equal("1");
     expect(getChild1Count()).to.equal("1");
     expect(getChild2Count()).to.equal("5");
 
     child2Button.click();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(getParentCount()).to.equal("1");
     expect(getChild1Count()).to.equal("1");
     expect(getChild2Count()).to.equal("6");
@@ -156,7 +156,7 @@ describe("BloomComponent - Nested Components", () => {
     const element = document.createElement("parent-updater");
     document.body.appendChild(element);
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     const childElement = element.querySelector('[data-testid="display"]')!;
 
@@ -172,11 +172,11 @@ describe("BloomComponent - Nested Components", () => {
     expect(getValue()).to.equal("0");
 
     button.click();
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(getValue()).to.equal("1");
 
     button.click();
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(getValue()).to.equal("2");
   });
 });

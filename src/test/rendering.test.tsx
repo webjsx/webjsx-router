@@ -60,7 +60,7 @@ describe("Bloom Rendering", () => {
     expect(countElement!.textContent).to.equal("0");
 
     button.click();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(countElement!.textContent).to.equal("1");
   });

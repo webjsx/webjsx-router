@@ -122,7 +122,7 @@ describe("BloomComponent - Shadow DOM", () => {
     const element = document.createElement("shadow-styled");
     document.body.appendChild(element);
   
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 0));
   
     const shadow = element.shadowRoot;
     expect(shadow).to.not.be.null;
@@ -177,11 +177,11 @@ describe("BloomComponent - Shadow DOM", () => {
     expect(countDisplay.textContent).to.equal("0");
 
     button.click();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(countDisplay.textContent).to.equal("1");
 
     button.click();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(countDisplay.textContent).to.equal("2");
   });
 });
