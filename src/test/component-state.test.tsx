@@ -25,7 +25,7 @@ describe("BloomComponent - State & Interactivity", () => {
 
     bloom.component(
       "state-test",
-      async function* (component, attributes) {
+      async function* (component) {
         let count = 0;
 
         const increment = () => {
@@ -75,7 +75,7 @@ describe("BloomComponent - State & Interactivity", () => {
   it("should handle multiple interactive elements", async () => {
     bloom.component(
       "multi-interactive",
-      async function* (component, attributes) {
+      async function* (component) {
         let count = 0;
         let text = "";
 

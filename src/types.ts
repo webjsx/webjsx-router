@@ -1,18 +1,19 @@
 import * as webjsx from "webjsx";
 
+export type PropType = string | number | boolean | object | null | undefined;
+export type FunctionPropType = (...args: any[]) => any;
+
+export interface BloomComponent {
+  render(): void;
+}
+
 export type PageGenerator = (
   params: Record<string, string>,
   query: string
 ) => AsyncGenerator<webjsx.VNode, void, void>;
 
-export interface BloomComponent<TProps = any> {
-  render(): void;
-  connected: boolean;
-}
-
-export type ComponentGenerator<TProps = any> = (
-  component: BloomComponent<TProps>,
-  props: TProps
+export type ComponentGenerator<TProps> = (
+  component: HTMLElement & BloomComponent & TProps
 ) => AsyncGenerator<webjsx.VNode, void, void>;
 
 export interface ComponentOptions {

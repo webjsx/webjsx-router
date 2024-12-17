@@ -20,39 +20,36 @@ describe("BloomComponent - Attributes", () => {
   });
 
   it("should pass all attributes as object to generator", async () => {
-    let receivedAttributes: Record<string, string> | null = null;
+    let webComponent: (HTMLElement & { foo: string; hello: string }) | null =
+      null;
 
     bloom.component(
       "attr-test",
-      async function* (component, attributes) {
-        receivedAttributes = attributes;
+      async function* (component) {
+        webComponent = component;
         yield <div>Test</div>;
       },
-      {}
+      { foo: "bar", hello: "world" }
     );
 
     const element = document.createElement("attr-test");
-    element.setAttribute("foo", "bar");
-    element.setAttribute("hello", "world");
+    element.setAttribute("foo", "baz");
+    element.setAttribute("hello", "universe");
     document.body.appendChild(element);
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(receivedAttributes).to.deep.equal({
-      foo: "bar",
-      hello: "world",
-    });
+    expect(webComponent!.foo).to.equal("baz");
+    expect(webComponent!.hello).to.equal("universe");
   });
 
   it("should update attributes object when attributes change", async () => {
-    let receivedAttributes: Record<string, string>[] = [];
-    let props: { foo: string | undefined } | undefined = undefined;
+    let webComponent: (HTMLElement & { foo: string }) | null;
 
     bloom.component(
       "attr-update-test",
-      async function* (component, attributes) {
-        props = attributes;
-        receivedAttributes.push({ ...attributes });
+      async function* (component) {
+        webComponent = component;
         yield <div>Test</div>;
       },
       { foo: "" }
@@ -66,6 +63,6 @@ describe("BloomComponent - Attributes", () => {
     element.setAttribute("foo", "baz");
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(props).to.deep.equal({ foo: "baz" });
+    expect(webComponent!.foo).to.equal("baz");
   });
 });

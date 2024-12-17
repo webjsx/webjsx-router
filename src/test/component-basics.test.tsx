@@ -23,7 +23,7 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
   it("should create a custom element with the specified name", () => {
     bloom.component(
       "test-component",
-      async function* (component, attributes) {
+      async function* (component) {
         yield <div>Test Component</div>;
       },
       {}
@@ -39,7 +39,7 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
   it("should automatically prefix component name if no hyphen provided", () => {
     bloom.component(
       "test",
-      async function* (component, attributes) {
+      async function* (component) {
         yield <div>Test Component</div>;
       },
       {}
@@ -55,7 +55,7 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
   it("should render content from generator", async () => {
     bloom.component(
       "test-content",
-      async function* (component, attributes) {
+      async function* (component) {
         yield <div class="content">Generated Content</div>;
       },
       {}
@@ -76,7 +76,7 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
 
     bloom.component(
       "cleanup-test",
-      async function* (component, attributes) {
+      async function* (component) {
         while (true) {
           renderCount++;
           yield <div>Render {renderCount}</div>;

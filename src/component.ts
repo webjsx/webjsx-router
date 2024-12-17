@@ -1,15 +1,19 @@
 import * as webjsx from "webjsx";
 import {
-  BloomComponent,
   ComponentGenerator,
   ComponentOptions,
+  PropType,
+  FunctionPropType,
+  BloomComponent,
 } from "./types.js";
-
-type PropType = string | number | boolean | object | null | undefined;
 
 function isSerializableProp(value: any): boolean {
   const type = typeof value;
   return type === "string" || type === "number" || type === "boolean";
+}
+
+function isFunctionProp(value: any): value is FunctionPropType {
+  return typeof value === "function";
 }
 
 function deserializeAttribute(
@@ -17,7 +21,6 @@ function deserializeAttribute(
   originalPropValue: any
 ): any {
   if (value === null) return value;
-
   const type = typeof originalPropValue;
   switch (type) {
     case "number":
@@ -30,14 +33,11 @@ function deserializeAttribute(
 }
 
 function serializeProp(value: any): string {
-  if (typeof value === "boolean") {
-    return "";
-  }
-  return String(value);
+  return typeof value === "boolean" ? "" : String(value);
 }
 
 export function defineComponent<
-  TProps extends { [K in keyof TProps]: PropType }
+  TProps extends { [K in keyof TProps]: PropType | FunctionPropType }
 >(
   name: string,
   generator: ComponentGenerator<TProps>,
@@ -46,26 +46,25 @@ export function defineComponent<
 ): void {
   const observedProps = new Set<string>();
   const nonObservedProps = new Set<string>();
+  const functionProps = new Set<string>();
 
   for (const [key, value] of Object.entries(initialProps)) {
-    if (isSerializableProp(value)) {
+    if (isFunctionProp(value)) {
+      functionProps.add(key);
+      nonObservedProps.add(key);
+    } else if (isSerializableProp(value)) {
       observedProps.add(key);
     } else {
       nonObservedProps.add(key);
     }
   }
 
-  class BloomComponentImpl
-    extends HTMLElement
-    implements BloomComponent<TProps>
-  {
+  class BloomComponentImpl extends HTMLElement implements BloomComponent {
     private iterator: AsyncGenerator<webjsx.VNode, void, void>;
     private root: ShadowRoot | HTMLElement;
     private _isConnected = false;
     private resolveUpdate: (() => void) | null = null;
     private currentVNode: webjsx.VNode | null = null;
-    private props: TProps;
-    private renderLoopPromise: Promise<void> | null = null;
 
     constructor() {
       super();
@@ -81,18 +80,22 @@ export function defineComponent<
         this.root = this;
       }
 
-      this.props = { ...initialProps };
+      Object.entries(initialProps).forEach(([key, value]) => {
+        (this as any)[key] = value;
+      });
 
       Array.from(this.attributes).forEach((attr) => {
         const value = attr.value;
         const key = attr.name;
         const originalValue = initialProps[key as keyof TProps];
-        if (originalValue !== undefined) {
-          (this.props as any)[key] = deserializeAttribute(value, originalValue);
+        if (originalValue !== undefined && !isFunctionProp(originalValue)) {
+          (this as any)[key] = deserializeAttribute(value, originalValue);
         }
       });
 
-      this.iterator = generator(this, this.props);
+      this.iterator = generator(
+        this as unknown as HTMLElement & BloomComponent & TProps
+      );
     }
 
     get connected(): boolean {
@@ -113,10 +116,13 @@ export function defineComponent<
 
     setAttribute(name: string, value: string): void {
       super.setAttribute(name, value);
+      if (functionProps.has(name)) return;
 
+      
       const currentPropValue = initialProps[name as keyof TProps];
       const parsedValue = deserializeAttribute(value, currentPropValue);
-      (this.props as any)[name] = parsedValue;
+      (this as any)[name] = parsedValue;
+
       if (this._isConnected) {
         this.render();
       }
@@ -124,9 +130,12 @@ export function defineComponent<
 
     removeAttribute(name: string): void {
       super.removeAttribute(name);
+      if (functionProps.has(name)) return;
+
       const currentPropValue = initialProps[name as keyof TProps];
       const parsedValue = deserializeAttribute(null, currentPropValue);
-      (this.props as any)[name] = parsedValue;
+      (this as any)[name] = parsedValue;
+
       if (this._isConnected) {
         this.render();
       }
@@ -137,11 +146,11 @@ export function defineComponent<
       oldValue: string | null,
       newValue: string | null
     ) {
-      if (oldValue === newValue) return;
+      if (oldValue === newValue || functionProps.has(name)) return;
 
       const currentPropValue = initialProps[name as keyof TProps];
       const parsedValue = deserializeAttribute(newValue, currentPropValue);
-      (this.props as any)[name] = parsedValue;
+      (this as any)[name] = parsedValue;
 
       if (this._isConnected) {
         this.render();
@@ -149,15 +158,12 @@ export function defineComponent<
     }
 
     render() {
-      if (this.resolveUpdate) {
-        this.resolveUpdate();
-      }
+      this.resolveUpdate?.();
     }
 
     private async startRenderLoop() {
       while (this._isConnected) {
         const { value: vdom, done } = await this.iterator.next();
-
         if (done || !this._isConnected) break;
 
         this.currentVNode = vdom;
@@ -169,33 +175,12 @@ export function defineComponent<
       }
     }
 
-    set<K extends keyof TProps>(name: K, value: TProps[K]) {
-      (this.props as any)[name] = value;
-
-      if (isSerializableProp(value)) {
-        if (value === false) {
-          this.removeAttribute(name as string);
-        } else {
-          this.setAttribute(name as string, serializeProp(value));
-        }
-      }
-
-      if (this._isConnected) {
-        this.render();
-      }
-    }
-
-    get<K extends keyof TProps>(name: K): TProps[K] | undefined {
-      return this.props[name];
-    }
-
     static get observedAttributes(): string[] {
       return Array.from(observedProps);
     }
   }
 
   const elementName = name.includes("-") ? name : `bloom-${name}`;
-
   if (!customElements.get(elementName)) {
     customElements.define(elementName, BloomComponentImpl);
   }

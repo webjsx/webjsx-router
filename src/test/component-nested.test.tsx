@@ -23,8 +23,8 @@ describe("BloomComponent - Nested Components", () => {
   it("should handle nested components with independent state", async () => {
     bloom.component(
       "child-counter",
-      async function* (component, attributes) {
-        let count = parseInt(attributes.initialCount || "0");
+      async function* (component) {
+        let count = parseInt(component.initialCount || "0");
 
         const increment = () => {
           count++;
@@ -34,10 +34,10 @@ describe("BloomComponent - Nested Components", () => {
         while (true) {
           yield (
             <div>
-              <span data-testid={`count-${attributes.id}`}>{count}</span>
+              <span data-testid={`count-${component.componentId}`}>{count}</span>
               <button
                 onclick={increment}
-                data-testid={`button-${attributes.id}`}
+                data-testid={`button-${component.componentId}`}
               >
                 +
               </button>
@@ -45,12 +45,12 @@ describe("BloomComponent - Nested Components", () => {
           );
         }
       },
-      { initialCount: "0", id: 0 }
+      { initialCount: "0", componentId: 0 }
     );
 
     bloom.component(
       "parent-component",
-      async function* (component, attributes) {
+      async function* (component) {
         let parentCount = 0;
 
         const incrementParent = () => {
@@ -65,8 +65,8 @@ describe("BloomComponent - Nested Components", () => {
               <button onclick={incrementParent} data-testid="parent-button">
                 +
               </button>
-              <child-counter id="1" initialCount="0" />
-              <child-counter id="2" initialCount="5" />
+              <child-counter componentId="1" initialCount="0" />
+              <child-counter componentId="2" initialCount="5" />
             </div>
           );
         }
@@ -122,12 +122,12 @@ describe("BloomComponent - Nested Components", () => {
   it("should update child component when parent passes new attributes", async () => {
     bloom.component(
       "display-attrs",
-      async function* (component, attributes) {
+      async function* (component) {
         while (true) {
           yield (
             <div>
-              <span data-testid="name">{attributes.name}</span>
-              <span data-testid="value">{attributes.value}</span>
+              <span data-testid="name">{component.name}</span>
+              <span data-testid="value">{component.value}</span>
             </div>
           );
         }
@@ -137,7 +137,7 @@ describe("BloomComponent - Nested Components", () => {
 
     bloom.component(
       "parent-updater",
-      async function* (component, attributes) {
+      async function* (component) {
         let currentValue = 0;
 
         const updateValue = () => {

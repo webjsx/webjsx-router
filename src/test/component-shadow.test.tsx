@@ -23,7 +23,7 @@ describe("BloomComponent - Shadow DOM", () => {
   it("should support shadow DOM with open mode", async () => {
     bloom.component(
       "shadow-test",
-      async function* (component, attributes) {
+      async function* (component) {
         yield <div class="shadow-content">Shadow Content</div>;
       },
       {},
@@ -47,7 +47,7 @@ describe("BloomComponent - Shadow DOM", () => {
   it("should support shadow DOM with closed mode", async () => {
     bloom.component(
       "shadow-closed-test",
-      async function* (component, attributes) {
+      async function* (component) {
         yield <div class="shadow-content">Shadow Content</div>;
       },
       {},
@@ -71,7 +71,7 @@ describe("BloomComponent - Shadow DOM", () => {
     // Create a component with shadow DOM
     bloom.component(
       "shadow-isolated",
-      async function* (component, attributes) {
+      async function* (component) {
         yield <div class="test-content">Shadow Content</div>;
       },
       {},
@@ -81,7 +81,7 @@ describe("BloomComponent - Shadow DOM", () => {
     // Create a regular component
     bloom.component(
       "regular-component",
-      async function* (component, attributes) {
+      async function* (component) {
         yield <div class="test-content">Regular Content</div>;
       },
       {}
@@ -108,7 +108,7 @@ describe("BloomComponent - Shadow DOM", () => {
   it("should support styling within shadow DOM", async () => {
     bloom.component(
       "shadow-styled",
-      async function* (component, attributes) {
+      async function* (component) {
         yield (
           <div>
             <style>
@@ -150,7 +150,7 @@ describe("BloomComponent - Shadow DOM", () => {
 
     bloom.component(
       "shadow-events",
-      async function* (component, attributes) {
+      async function* (component) {
         const handleClick = () => {
           clickCount++;
           component.render();
