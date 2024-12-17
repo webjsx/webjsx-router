@@ -21,25 +21,32 @@ describe("BloomComponent - Nested Components", () => {
   });
 
   it("should handle nested components with independent state", async () => {
-    bloom.component("child-counter", async function* (component, attributes) {
-      let count = parseInt(attributes.initialCount || "0");
+    bloom.component(
+      "child-counter",
+      async function* (component, attributes) {
+        let count = parseInt(attributes.initialCount || "0");
 
-      const increment = () => {
-        count++;
-        component.render();
-      };
+        const increment = () => {
+          count++;
+          component.render();
+        };
 
-      while (true) {
-        yield (
-          <div>
-            <span data-testid={`count-${attributes.id}`}>{count}</span>
-            <button onclick={increment} data-testid={`button-${attributes.id}`}>
-              +
-            </button>
-          </div>
-        );
-      }
-    });
+        while (true) {
+          yield (
+            <div>
+              <span data-testid={`count-${attributes.id}`}>{count}</span>
+              <button
+                onclick={increment}
+                data-testid={`button-${attributes.id}`}
+              >
+                +
+              </button>
+            </div>
+          );
+        }
+      },
+      { initialCount: "0", id: 0 }
+    );
 
     bloom.component(
       "parent-component",
@@ -63,7 +70,8 @@ describe("BloomComponent - Nested Components", () => {
             </div>
           );
         }
-      }
+      },
+      {}
     );
 
     const element = document.createElement("parent-component");
@@ -124,34 +132,36 @@ describe("BloomComponent - Nested Components", () => {
           );
         }
       },
-      {
-        observedAttributes: ["name", "value"],
-      }
+      { name: "", value: "" }
     );
 
-    bloom.component("parent-updater", async function* (component, attributes) {
-      let currentValue = 0;
+    bloom.component(
+      "parent-updater",
+      async function* (component, attributes) {
+        let currentValue = 0;
 
-      const updateValue = () => {
-        currentValue++;
-        component.render();
-      };
+        const updateValue = () => {
+          currentValue++;
+          component.render();
+        };
 
-      while (true) {
-        yield (
-          <div>
-            <display-attrs
-              name="counter"
-              value={currentValue.toString()}
-              data-testid="display"
-            />
-            <button onclick={updateValue} data-testid="update">
-              Update
-            </button>
-          </div>
-        );
-      }
-    });
+        while (true) {
+          yield (
+            <div>
+              <display-attrs
+                name="counter"
+                value={currentValue.toString()}
+                data-testid="display"
+              />
+              <button onclick={updateValue} data-testid="update">
+                Update
+              </button>
+            </div>
+          );
+        }
+      },
+      {}
+    );
 
     const element = document.createElement("parent-updater");
     document.body.appendChild(element);

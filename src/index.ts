@@ -1,11 +1,18 @@
 import * as webjsx from "webjsx";
-import { ComponentGenerator, ComponentOptions, PageGenerator } from "./types.js";
+import {
+  ComponentGenerator,
+  ComponentOptions,
+  PageGenerator,
+} from "./types.js";
 import { defineComponent } from "./component.js";
 import { Router } from "./router.js";
 
+type PropType = string | number | boolean | object | null | undefined;
+
 export class Bloom {
   private router: Router = new Router();
-  private currentIterator: AsyncGenerator<webjsx.VNode, void, void> | null = null;
+  private currentIterator: AsyncGenerator<webjsx.VNode, void, void> | null =
+    null;
   private updatePromise: Promise<void> | null = null;
   private resolveUpdate: (() => void) | null = null;
   private appContainer: HTMLElement;
@@ -26,12 +33,13 @@ export class Bloom {
     });
   }
 
-  public component(
+  public component<TProps extends { [K in keyof TProps]: PropType }>(
     name: string,
-    generator: ComponentGenerator,
+    generator: ComponentGenerator<TProps>,
+    initialProps: TProps,
     options: ComponentOptions = {}
   ): void {
-    defineComponent(name, generator, options);
+    defineComponent(name, generator, initialProps, options);
   }
 
   public page(pattern: string, pageGenerator: PageGenerator): void {

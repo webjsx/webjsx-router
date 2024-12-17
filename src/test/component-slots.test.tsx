@@ -30,6 +30,7 @@ describe("BloomComponent - Slots", () => {
           </div>
         );
       },
+      {},
       { shadow: "open" }
     );
 
@@ -65,6 +66,7 @@ describe("BloomComponent - Slots", () => {
           </div>
         );
       },
+      {},
       { shadow: "open" }
     );
 
@@ -119,6 +121,7 @@ describe("BloomComponent - Slots", () => {
           </div>
         );
       },
+      {},
       { shadow: "open" }
     );
 
@@ -142,6 +145,7 @@ describe("BloomComponent - Slots", () => {
           </div>
         );
       },
+      {},
       { shadow: "open" }
     );
 
@@ -172,6 +176,7 @@ describe("BloomComponent - Slots", () => {
           </div>
         );
       },
+      {},
       { shadow: "open" }
     );
 
@@ -187,6 +192,7 @@ describe("BloomComponent - Slots", () => {
           </div>
         );
       },
+      {},
       { shadow: "open" }
     );
 

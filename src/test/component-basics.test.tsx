@@ -21,9 +21,13 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
   });
 
   it("should create a custom element with the specified name", () => {
-    bloom.component("test-component", async function* (component, attributes) {
-      yield <div>Test Component</div>;
-    });
+    bloom.component(
+      "test-component",
+      async function* (component, attributes) {
+        yield <div>Test Component</div>;
+      },
+      {}
+    );
 
     const element = document.createElement("test-component");
     document.body.appendChild(element);
@@ -33,9 +37,13 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
   });
 
   it("should automatically prefix component name if no hyphen provided", () => {
-    bloom.component("test", async function* (component, attributes) {
-      yield <div>Test Component</div>;
-    });
+    bloom.component(
+      "test",
+      async function* (component, attributes) {
+        yield <div>Test Component</div>;
+      },
+      {}
+    );
 
     const element = document.createElement("bloom-test");
     document.body.appendChild(element);
@@ -45,9 +53,13 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
   });
 
   it("should render content from generator", async () => {
-    bloom.component("test-content", async function* (component, attributes) {
-      yield <div class="content">Generated Content</div>;
-    });
+    bloom.component(
+      "test-content",
+      async function* (component, attributes) {
+        yield <div class="content">Generated Content</div>;
+      },
+      {}
+    );
 
     const element = document.createElement("test-content");
     document.body.appendChild(element);
@@ -62,13 +74,17 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
   it("should clean up when disconnected", async () => {
     let renderCount = 0;
 
-    bloom.component("cleanup-test", async function* (component, attributes) {
-      while (true) {
-        renderCount++;
-        yield <div>Render {renderCount}</div>;
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      }
-    });
+    bloom.component(
+      "cleanup-test",
+      async function* (component, attributes) {
+        while (true) {
+          renderCount++;
+          yield <div>Render {renderCount}</div>;
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+      },
+      {}
+    );
 
     const element = document.createElement("cleanup-test");
     document.body.appendChild(element);

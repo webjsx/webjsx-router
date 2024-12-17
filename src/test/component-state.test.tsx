@@ -23,26 +23,30 @@ describe("BloomComponent - State & Interactivity", () => {
   it("should maintain state between renders", async () => {
     let renderCount = 0;
 
-    bloom.component("state-test", async function* (component, attributes) {
-      let count = 0;
+    bloom.component(
+      "state-test",
+      async function* (component, attributes) {
+        let count = 0;
 
-      const increment = () => {
-        count++;
-        renderCount++;
-        component.render();
-      };
+        const increment = () => {
+          count++;
+          renderCount++;
+          component.render();
+        };
 
-      while (true) {
-        yield (
-          <div>
-            <span data-testid="count">{count}</span>
-            <button onclick={increment} data-testid="button">
-              Increment
-            </button>
-          </div>
-        );
-      }
-    });
+        while (true) {
+          yield (
+            <div>
+              <span data-testid="count">{count}</span>
+              <button onclick={increment} data-testid="button">
+                Increment
+              </button>
+            </div>
+          );
+        }
+      },
+      {}
+    );
 
     const element = document.createElement("state-test");
     document.body.appendChild(element);
@@ -102,7 +106,8 @@ describe("BloomComponent - State & Interactivity", () => {
             </div>
           );
         }
-      }
+      },
+      {}
     );
 
     const element = document.createElement("multi-interactive");

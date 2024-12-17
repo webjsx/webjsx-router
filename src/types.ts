@@ -5,14 +5,17 @@ export type PageGenerator = (
   query: string
 ) => AsyncGenerator<webjsx.VNode, void, void>;
 
-// In types.ts
-export type ComponentGenerator = (
-  component: any,
-  attributes: Record<string, string>
+export interface BloomComponent<TProps = any> {
+  render(): void;
+  connected: boolean;
+}
+
+export type ComponentGenerator<TProps = any> = (
+  component: BloomComponent<TProps>,
+  props: TProps
 ) => AsyncGenerator<webjsx.VNode, void, void>;
 
 export interface ComponentOptions {
   shadow?: "open" | "closed";
-  observedAttributes?: string[];
   styles?: string;
 }

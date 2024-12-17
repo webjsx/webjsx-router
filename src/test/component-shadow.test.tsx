@@ -26,6 +26,7 @@ describe("BloomComponent - Shadow DOM", () => {
       async function* (component, attributes) {
         yield <div class="shadow-content">Shadow Content</div>;
       },
+      {},
       { shadow: "open" }
     );
 
@@ -49,6 +50,7 @@ describe("BloomComponent - Shadow DOM", () => {
       async function* (component, attributes) {
         yield <div class="shadow-content">Shadow Content</div>;
       },
+      {},
       { shadow: "closed" }
     );
 
@@ -72,6 +74,7 @@ describe("BloomComponent - Shadow DOM", () => {
       async function* (component, attributes) {
         yield <div class="test-content">Shadow Content</div>;
       },
+      {},
       { shadow: "open" }
     );
 
@@ -80,7 +83,8 @@ describe("BloomComponent - Shadow DOM", () => {
       "regular-component",
       async function* (component, attributes) {
         yield <div class="test-content">Regular Content</div>;
-      }
+      },
+      {}
     );
 
     // Create both components
@@ -116,23 +120,25 @@ describe("BloomComponent - Shadow DOM", () => {
           </div>
         );
       },
+      {},
       { shadow: "open" }
     );
-  
+
     const element = document.createElement("shadow-styled");
     document.body.appendChild(element);
-  
+
     await new Promise((resolve) => setTimeout(resolve, 0));
-  
+
     const shadow = element.shadowRoot;
     expect(shadow).to.not.be.null;
-  
+
     // Check if style element exists and contains correct CSS
     const styleElement = shadow!.querySelector("style");
     expect(styleElement).to.not.be.null;
-    expect(styleElement!.textContent!.replace(/\s+/g, ' ').trim())
-      .to.equal('.styled-content { color: red; }');
-  
+    expect(styleElement!.textContent!.replace(/\s+/g, " ").trim()).to.equal(
+      ".styled-content { color: red; }"
+    );
+
     // Check if content element exists with correct class
     const styledContent = shadow!.querySelector(".styled-content");
     expect(styledContent).to.not.be.null;
@@ -161,6 +167,7 @@ describe("BloomComponent - Shadow DOM", () => {
           );
         }
       },
+      {},
       { shadow: "open" }
     );
 

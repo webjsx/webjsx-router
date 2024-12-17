@@ -22,10 +22,14 @@ describe("BloomComponent - Attributes", () => {
   it("should pass all attributes as object to generator", async () => {
     let receivedAttributes: Record<string, string> | null = null;
 
-    bloom.component("attr-test", async function* (component, attributes) {
-      receivedAttributes = attributes;
-      yield <div>Test</div>;
-    });
+    bloom.component(
+      "attr-test",
+      async function* (component, attributes) {
+        receivedAttributes = attributes;
+        yield <div>Test</div>;
+      },
+      {}
+    );
 
     const element = document.createElement("attr-test");
     element.setAttribute("foo", "bar");
@@ -49,9 +53,7 @@ describe("BloomComponent - Attributes", () => {
         receivedAttributes.push({ ...attributes });
         yield <div>Test</div>;
       },
-      {
-        observedAttributes: ["foo"],
-      }
+      {}
     );
 
     const element = document.createElement("attr-update-test");

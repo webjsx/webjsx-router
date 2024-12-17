@@ -1,39 +1,109 @@
 import * as webjsx from "webjsx";
-import { ComponentGenerator, ComponentOptions } from "./types.js";
+import {
+  BloomComponent,
+  ComponentGenerator,
+  ComponentOptions,
+} from "./types.js";
 
-export function defineComponent(
+type PropType = string | number | boolean | object | null | undefined;
+
+function isSerializableProp(value: any): boolean {
+  const type = typeof value;
+  return type === "string" || type === "number" || type === "boolean";
+}
+
+function deserializeAttribute(
+  value: string | null,
+  originalPropValue: any
+): any {
+  if (value === null) return value;
+
+  const type = typeof originalPropValue;
+  switch (type) {
+    case "number":
+      return Number(value);
+    case "boolean":
+      return true;
+    default:
+      return value;
+  }
+}
+
+function serializeProp(value: any): string {
+  if (typeof value === "boolean") {
+    return "";
+  }
+  return String(value);
+}
+
+export function defineComponent<
+  TProps extends { [K in keyof TProps]: PropType }
+>(
   name: string,
-  generator: ComponentGenerator,
+  generator: ComponentGenerator<TProps>,
+  initialProps: TProps,
   options: ComponentOptions = {}
 ): void {
-  class BloomComponent extends HTMLElement {
+  const observedProps = new Set<string>();
+  const nonObservedProps = new Set<string>();
+
+  for (const [key, value] of Object.entries(initialProps)) {
+    if (isSerializableProp(value)) {
+      observedProps.add(key);
+    } else {
+      nonObservedProps.add(key);
+    }
+  }
+
+  class BloomComponentImpl
+    extends HTMLElement
+    implements BloomComponent<TProps>
+  {
     private iterator: AsyncGenerator<webjsx.VNode, void, void> | null = null;
     private root: ShadowRoot | HTMLElement;
     private _isConnected = false;
     private resolveUpdate: (() => void) | null = null;
     private currentVNode: webjsx.VNode | null = null;
-    private initialAttributes: Record<string, string> = {};
+    private props: TProps;
+    private propsProxy: TProps;
 
     constructor() {
       super();
-      this.root = options.shadow
-        ? this.attachShadow({ mode: options.shadow })
-        : this;
+
+      if (options.shadow) {
+        this.root = this.attachShadow({ mode: options.shadow });
+        if (options.styles) {
+          const style = document.createElement("style");
+          style.textContent = options.styles;
+          this.root.appendChild(style);
+        }
+      } else {
+        this.root = this;
+      }
+
+      this.props = { ...initialProps };
+
+      // Initialize the internal props
+      for (const [key, value] of Object.entries(initialProps)) {
+        if (isSerializableProp(value)) {
+          this.setAttribute(key, serializeProp(value));
+        }
+      }
+
+      // Create a proxy that will be passed to the generator
+      this.propsProxy = new Proxy({} as TProps, {
+        get: (_, prop: string) => {
+          return this.props[prop as keyof TProps];
+        },
+        set: (_, prop: string, value) => {
+          this.set(prop as keyof TProps, value);
+          return true;
+        },
+      });
     }
 
     get connected(): boolean {
       return this._isConnected;
-    }
-
-    private getAttributes(): Record<string, string> {
-      const attributes: Record<string, string> = {
-        ...this.initialAttributes,
-      };
-
-      for (const attr of this.attributes) {
-        attributes[attr.name] = attr.value;
-      }
-      return attributes;
     }
 
     async connectedCallback() {
@@ -48,6 +118,24 @@ export function defineComponent(
       this.currentVNode = null;
     }
 
+    attributeChangedCallback(
+      name: string,
+      oldValue: string | null,
+      newValue: string | null
+    ) {
+      if (oldValue === newValue) return;
+
+      const currentPropValue = this.props[name as keyof TProps];
+      if (name in this.props && isSerializableProp(currentPropValue)) {
+        const parsedValue = deserializeAttribute(newValue, currentPropValue);
+        (this.props as any)[name] = parsedValue;
+
+        if (this._isConnected) {
+          this.render();
+        }
+      }
+    }
+
     render() {
       if (this.resolveUpdate) {
         this.resolveUpdate();
@@ -55,7 +143,7 @@ export function defineComponent(
     }
 
     private async resetIterator() {
-      this.iterator = generator(this, this.getAttributes());
+      this.iterator = generator(this, this.propsProxy);
       await this.startRenderLoop();
     }
 
@@ -74,26 +162,34 @@ export function defineComponent(
       }
     }
 
-    static get observedAttributes() {
-      return options.observedAttributes || [];
-    }
+    set<K extends keyof TProps>(name: K, value: TProps[K]) {
+      (this.props as any)[name] = value;
 
-    async attributeChangedCallback() {
+      if (isSerializableProp(value)) {
+        if (value === false) {
+          this.removeAttribute(name as string);
+        } else {
+          this.setAttribute(name as string, serializeProp(value));
+        }
+      }
+
       if (this._isConnected) {
-        await this.resetIterator();
+        this.render();
       }
     }
 
-    // Add support for setting attributes via JSX
-    setAttribute(name: string, value: string) {
-      this.initialAttributes[name] = value;
-      super.setAttribute(name, value);
+    get<K extends keyof TProps>(name: K): TProps[K] | undefined {
+      return this.props[name];
+    }
+
+    static get observedAttributes(): string[] {
+      return Array.from(observedProps);
     }
   }
 
   const elementName = name.includes("-") ? name : `bloom-${name}`;
 
   if (!customElements.get(elementName)) {
-    customElements.define(elementName, BloomComponent);
+    customElements.define(elementName, BloomComponentImpl);
   }
 }
