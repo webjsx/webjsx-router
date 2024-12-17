@@ -81,20 +81,20 @@ export function defineComponent<
         this.root = this;
       }
 
+      // Initialize props from initialProps
       this.props = { ...initialProps };
 
-      // Initialize attributes for all serializable props
-      for (const key of observedProps) {
-        if (this.hasAttribute(key)) {
-          const value = this.getAttribute(key);
-          (this.props as any)[key] = deserializeAttribute(
-            value,
-            initialProps[key as keyof TProps]
-          );
+      // Initialize props from attributes
+      Array.from(this.attributes).forEach((attr) => {
+        const value = attr.value;
+        const key = attr.name;
+        const originalValue = initialProps[key as keyof TProps];
+        if (originalValue !== undefined) {
+          (this.props as any)[key] = deserializeAttribute(value, originalValue);
         }
-      }
+      });
 
-      // Create a proxy that will be passed to the generator
+      // Create props proxy
       this.propsProxy = new Proxy({} as TProps, {
         get: (_, prop: string) => {
           return this.props[prop as keyof TProps];
@@ -122,6 +122,27 @@ export function defineComponent<
       this.currentVNode = null;
     }
 
+    setAttribute(name: string, value: string): void {
+      super.setAttribute(name, value);
+
+      const currentPropValue = initialProps[name as keyof TProps];
+      const parsedValue = deserializeAttribute(value, currentPropValue);
+      (this.props as any)[name] = parsedValue;
+      if (this._isConnected) {
+        this.render();
+      }
+    }
+
+    removeAttribute(name: string): void {
+      super.removeAttribute(name);
+      const currentPropValue = initialProps[name as keyof TProps];
+      const parsedValue = deserializeAttribute(null, currentPropValue);
+      (this.props as any)[name] = parsedValue;
+      if (this._isConnected) {
+        this.render();
+      }
+    }
+
     attributeChangedCallback(
       name: string,
       oldValue: string | null,
@@ -130,13 +151,11 @@ export function defineComponent<
       if (oldValue === newValue) return;
 
       const currentPropValue = initialProps[name as keyof TProps];
-      if (observedProps.has(name)) {
-        const parsedValue = deserializeAttribute(newValue, currentPropValue);
-        (this.props as any)[name] = parsedValue;
+      const parsedValue = deserializeAttribute(newValue, currentPropValue);
+      (this.props as any)[name] = parsedValue;
 
-        if (this._isConnected) {
-          this.render();
-        }
+      if (this._isConnected) {
+        this.render();
       }
     }
 
