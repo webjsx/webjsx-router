@@ -2,11 +2,6 @@
 
 A lightweight component framework that uses JavaScript generators to build web applications.
 
-## Building a Hacker News Clone
-
-We'll build a clone of Hacker News (HN) - a popular tech news aggregation site. It'll demonstrate lists, nested comments, and real-time updates.
-If you want to jump right into code, you can [edit this app on StackBlitz](https://stackblitz.com/edit/bloom-hn)
-
 ## Installation
 
 ```bash
@@ -47,7 +42,11 @@ app.component("counter", async function* (component) {
 
 When `component.render()` is called, the generator continues and yields the next view with updated data.
 
-## Building the HN Clone
+## Building an HN Clone
+
+The best way to learn is by doing. Let's build a clone of Hacker News (HN) - a popular tech news aggregation site. It'll demonstrate lists, nested comments, and real-time updates.
+If you want to jump right into code, you can [edit this app on StackBlitz](https://stackblitz.com/edit/bloom-hn)
+
 
 Let's build our app piece by piece. First, we'll need some types and utilities:
 
