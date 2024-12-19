@@ -72,8 +72,7 @@ describe("BloomComponent - Nested Components", () => {
             </div>
           );
         }
-      },
-      {}
+      }
     );
 
     const element = document.createElement("parent-component");
@@ -161,8 +160,7 @@ describe("BloomComponent - Nested Components", () => {
             </div>
           );
         }
-      },
-      {}
+      }
     );
 
     const element = document.createElement("parent-updater");

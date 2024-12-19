@@ -83,8 +83,7 @@ describe("BloomComponent - Shadow DOM", () => {
       "regular-component",
       async function* (component) {
         yield <div class="test-content">Regular Content</div>;
-      },
-      {}
+      }
     );
 
     // Create both components

@@ -44,8 +44,7 @@ describe("BloomComponent - State & Interactivity", () => {
             </div>
           );
         }
-      },
-      {}
+      }
     );
 
     const element = document.createElement("state-test");
@@ -106,8 +105,7 @@ describe("BloomComponent - State & Interactivity", () => {
             </div>
           );
         }
-      },
-      {}
+      }
     );
 
     const element = document.createElement("multi-interactive");

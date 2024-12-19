@@ -25,8 +25,7 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
       "test-component",
       async function* (component) {
         yield <div>Test Component</div>;
-      },
-      {}
+      }
     );
 
     const element = document.createElement("test-component");
@@ -41,8 +40,7 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
       "test",
       async function* (component) {
         yield <div>Test Component</div>;
-      },
-      {}
+      }
     );
 
     const element = document.createElement("bloom-test");
@@ -57,8 +55,7 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
       "test-content",
       async function* (component) {
         yield <div class="content">Generated Content</div>;
-      },
-      {}
+      }
     );
 
     const element = document.createElement("test-content");
@@ -82,8 +79,7 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
           yield <div>Render {renderCount}</div>;
           await new Promise((resolve) => setTimeout(resolve, 0));
         }
-      },
-      {}
+      }
     );
 
     const element = document.createElement("cleanup-test");

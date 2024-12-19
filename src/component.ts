@@ -37,11 +37,11 @@ function serializeProp(value: any): string | null {
 }
 
 export function defineComponent<
-  TProps extends { [K in keyof TProps]: PropType | FunctionPropType }
+  TProps extends { [K in keyof TProps]: PropType | FunctionPropType } = {}
 >(
   name: string,
   generator: ComponentGenerator<TProps>,
-  defaultProps: TProps,
+  defaultProps: TProps = {} as TProps,
   options: ComponentOptions = {}
 ): void {
   const observedProps = new Set<string>();
