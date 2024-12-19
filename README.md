@@ -1,10 +1,9 @@
 # Bloom: A Web Component Framework
 
-Build lightweight, efficient web applications using Async Generators and Web Components.
+Bloom enables you to build efficient, lightweight web applications with Web Components and native JS features.
 
 ## Core Pattern
-
-The core design of Bloom revolves around a simplified component lifecycle, leveraging JavaScript generators to manage UI rendering. Here's how it works:
+Bloom uses native JavaScript features to manage UI rendering. Each component is defined as an asynchronous generator, allowing it to yield a dynamic view and respond to events as they come in. Here’s the process:
 
 1. **Generator Initiation**: Each component is defined as an asynchronous generator function and is exposed as a Web Component.
 2. **Yield Current View**: On each iteration, the generator yields the current view, which is a representation of the UI at that point in time.
