@@ -1,6 +1,6 @@
 # Bloom: A Web Component Framework
 
-Bloom enables you to build efficient, lightweight web applications with Web Components and native JS features.
+Bloom enables you to build efficient, lightweight web applications with Web Components and Asynchronous Generators.
 
 ## Core Pattern
 Bloom uses native JavaScript features to manage UI rendering. Each component is defined as an asynchronous generator, allowing it to yield a dynamic view and respond to events as they come in. Here’s the process:
