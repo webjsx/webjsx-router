@@ -5,6 +5,7 @@ A lightweight component framework that uses JavaScript generators to build web a
 ## Building a Hacker News Clone
 
 We'll build a clone of Hacker News (HN) - a popular tech news aggregation site. It'll demonstrate lists, nested comments, and real-time updates.
+If you want to jump right into code, you can [edit this app on StackBlitz](https://stackblitz.com/edit/bloom-hn)
 
 ## Installation
 
