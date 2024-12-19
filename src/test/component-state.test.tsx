@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Bloom } from "../index.js";
+import { Bloom, component } from "../index.js";
 import "./setup.js";
 import { setupJSDOM } from "./setup.js";
 import * as webjsx from "webjsx";
@@ -23,7 +23,7 @@ describe("BloomComponent - State & Interactivity", () => {
   it("should maintain state between renders", async () => {
     let renderCount = 0;
 
-    bloom.component(
+    component(
       "state-test",
       async function* (component) {
         let count = 0;
@@ -72,7 +72,7 @@ describe("BloomComponent - State & Interactivity", () => {
   });
 
   it("should handle multiple interactive elements", async () => {
-    bloom.component(
+    component(
       "multi-interactive",
       async function* (component) {
         let count = 0;

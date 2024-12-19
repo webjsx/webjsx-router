@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Bloom } from "../index.js";
+import { Bloom, component } from "../index.js";
 import "./setup.js";
 import { setupJSDOM } from "./setup.js";
 import "./types.js";
@@ -23,7 +23,7 @@ describe("BloomComponent - Attributes", () => {
     let webComponent: (HTMLElement & { foo: string; hello: string }) | null =
       null;
 
-    bloom.component(
+    component(
       "attr-test",
       async function* (component) {
         webComponent = component;
@@ -46,7 +46,7 @@ describe("BloomComponent - Attributes", () => {
   it("should update attributes object when attributes change", async () => {
     let webComponent: (HTMLElement & { foo: string }) | null;
 
-    bloom.component(
+    component(
       "attr-update-test",
       async function* (component) {
         webComponent = component;

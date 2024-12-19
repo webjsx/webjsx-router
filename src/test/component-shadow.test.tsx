@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Bloom } from "../index.js";
+import { Bloom, component } from "../index.js";
 import "./setup.js";
 import { setupJSDOM } from "./setup.js";
 import * as webjsx from "webjsx";
@@ -21,7 +21,7 @@ describe("BloomComponent - Shadow DOM", () => {
   });
 
   it("should support shadow DOM with open mode", async () => {
-    bloom.component(
+    component(
       "shadow-test",
       async function* (component) {
         yield <div class="shadow-content">Shadow Content</div>;
@@ -45,7 +45,7 @@ describe("BloomComponent - Shadow DOM", () => {
   });
 
   it("should support shadow DOM with closed mode", async () => {
-    bloom.component(
+    component(
       "shadow-closed-test",
       async function* (component) {
         yield <div class="shadow-content">Shadow Content</div>;
@@ -69,7 +69,7 @@ describe("BloomComponent - Shadow DOM", () => {
 
   it("should keep shadow DOM content isolated from main document", async () => {
     // Create a component with shadow DOM
-    bloom.component(
+    component(
       "shadow-isolated",
       async function* (component) {
         yield <div class="test-content">Shadow Content</div>;
@@ -79,7 +79,7 @@ describe("BloomComponent - Shadow DOM", () => {
     );
 
     // Create a regular component
-    bloom.component(
+    component(
       "regular-component",
       async function* (component) {
         yield <div class="test-content">Regular Content</div>;
@@ -105,7 +105,7 @@ describe("BloomComponent - Shadow DOM", () => {
   });
 
   it("should support styling within shadow DOM", async () => {
-    bloom.component(
+    component(
       "shadow-styled",
       async function* (component) {
         yield (
@@ -147,7 +147,7 @@ describe("BloomComponent - Shadow DOM", () => {
   it("should handle events within shadow DOM", async () => {
     let clickCount = 0;
 
-    bloom.component(
+    component(
       "shadow-events",
       async function* (component) {
         const handleClick = () => {

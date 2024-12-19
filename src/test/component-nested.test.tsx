@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Bloom } from "../index.js";
+import { Bloom, component } from "../index.js";
 import "./setup.js";
 import { setupJSDOM } from "./setup.js";
 import * as webjsx from "webjsx";
@@ -21,7 +21,7 @@ describe("BloomComponent - Nested Components", () => {
   });
 
   it("should handle nested components with independent state", async () => {
-    bloom.component(
+    component(
       "child-counter",
       async function* (component) {
         let count = component.initialcount;
@@ -50,7 +50,7 @@ describe("BloomComponent - Nested Components", () => {
       { initialcount: 0, componentid: 0 }
     );
 
-    bloom.component(
+    component(
       "parent-component",
       async function* (component) {
         let parentCount = 0;
@@ -121,7 +121,7 @@ describe("BloomComponent - Nested Components", () => {
   });
 
   it("should update child component when parent passes new attributes", async () => {
-    bloom.component(
+    component(
       "display-attrs",
       async function* (component) {
         while (true) {
@@ -136,7 +136,7 @@ describe("BloomComponent - Nested Components", () => {
       { name: "", value: "" }
     );
 
-    bloom.component(
+    component(
       "parent-updater",
       async function* (component) {
         let currentValue = 0;

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Bloom, BloomComponent } from "../index.js";
+import { Bloom, component, BloomComponent } from "../index.js";
 import "./setup.js";
 import { setupJSDOM } from "./setup.js";
 import * as webjsx from "webjsx";
@@ -21,7 +21,7 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
   });
 
   it("should create a custom element with the specified name", () => {
-    bloom.component(
+    component(
       "test-component",
       async function* (component) {
         yield <div>Test Component</div>;
@@ -36,7 +36,7 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
   });
 
   it("should automatically prefix component name if no hyphen provided", () => {
-    bloom.component(
+    component(
       "test",
       async function* (component) {
         yield <div>Test Component</div>;
@@ -51,7 +51,7 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
   });
 
   it("should render content from generator", async () => {
-    bloom.component(
+    component(
       "test-content",
       async function* (component) {
         yield <div class="content">Generated Content</div>;
@@ -71,7 +71,7 @@ describe("BloomComponent - Basic Creation & Rendering", () => {
   it("should clean up when disconnected", async () => {
     let renderCount = 0;
 
-    bloom.component(
+    component(
       "cleanup-test",
       async function* (component) {
         while (true) {

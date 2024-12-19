@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Bloom, BloomComponent } from "../index.js";
+import { Bloom, component, BloomComponent } from "../index.js";
 import "./setup.js";
 import { setupJSDOM } from "./setup.js";
 import * as webjsx from "webjsx";
@@ -23,7 +23,7 @@ describe("BloomComponent - Function Props", () => {
   it("should handle function props", async () => {
     let clicked = false;
 
-    bloom.component(
+    component(
       "function-test",
       async function* (component) {
         yield (
@@ -52,7 +52,7 @@ describe("BloomComponent - Function Props", () => {
   it("should update function props", async () => {
     let clickCount = 0;
 
-    bloom.component(
+    component(
       "updatable-function",
       async function* (component) {
         yield (
@@ -83,7 +83,7 @@ describe("BloomComponent - Function Props", () => {
   it("should handle mix of function and regular props", async () => {
     let clickValue = "";
 
-    bloom.component(
+    component(
       "mixed-props",
       async function* (component) {
         yield (

@@ -36,7 +36,7 @@ function serializeProp(value: any): string | null {
   return String(value);
 }
 
-export function defineComponent<
+export function component<
   TProps extends { [K in keyof TProps]: PropType | FunctionPropType } = {}
 >(
   name: string,

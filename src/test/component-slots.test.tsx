@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Bloom } from "../index.js";
+import { Bloom, component } from "../index.js";
 import "./setup.js";
 import { setupJSDOM } from "./setup.js";
 import * as webjsx from "webjsx";
@@ -21,7 +21,7 @@ describe("BloomComponent - Slots", () => {
   });
 
   it("should render content in default slot", async () => {
-    bloom.component(
+    component(
       "default-slot",
       async function* () {
         yield (
@@ -49,7 +49,7 @@ describe("BloomComponent - Slots", () => {
   });
 
   it("should render content in named slots", async () => {
-    bloom.component(
+    component(
       "named-slot",
       async function* () {
         yield (
@@ -112,7 +112,7 @@ describe("BloomComponent - Slots", () => {
   });
 
   it("should show fallback content when slot is empty", async () => {
-    bloom.component(
+    component(
       "fallback-slot",
       async function* () {
         yield (
@@ -136,7 +136,7 @@ describe("BloomComponent - Slots", () => {
   });
 
   it("should update slot content when children change", async () => {
-    bloom.component(
+    component(
       "dynamic-slot",
       async function* () {
         yield (
@@ -167,7 +167,7 @@ describe("BloomComponent - Slots", () => {
 
   it("should handle nested components with slots", async () => {
     // Inner component with slot
-    bloom.component(
+    component(
       "inner-slot",
       async function* () {
         yield (
@@ -181,7 +181,7 @@ describe("BloomComponent - Slots", () => {
     );
 
     // Outer component that uses inner component
-    bloom.component(
+    component(
       "outer-slot",
       async function* () {
         yield (

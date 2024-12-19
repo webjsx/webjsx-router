@@ -1,13 +1,12 @@
 import * as webjsx from "webjsx";
-import {
-  ComponentGenerator,
-  ComponentOptions,
-  PageGenerator,
-} from "./types.js";
-import { defineComponent } from "./component.js";
 import { Router } from "./router.js";
+import {
+  PageGenerator
+} from "./types.js";
 
 type PropType = string | number | boolean | object | null | undefined;
+
+export { component } from "./component.js";
 
 export class Bloom {
   private router: Router = new Router();
@@ -31,15 +30,6 @@ export class Bloom {
     window.addEventListener("popstate", () => {
       this.handleNavigation(location.pathname + location.search);
     });
-  }
-
-  public component<TProps extends { [K in keyof TProps]: PropType } = {}>(
-    name: string,
-    generator: ComponentGenerator<TProps>,
-    defaultProps: TProps = {} as TProps,
-    options: ComponentOptions = {}
-  ): void {
-    defineComponent(name, generator, defaultProps, options);
   }
 
   public page(pattern: string, pageGenerator: PageGenerator): void {
