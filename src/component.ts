@@ -55,7 +55,10 @@ export function component<
     }
   }
 
-  class BloomComponentImpl extends HTMLElement implements BloomComponent {
+  class BloomComponentImpl
+    extends (options.extends ?? HTMLElement)
+    implements BloomComponent
+  {
     #iterator: AsyncGenerator<webjsx.VNode, void, void>;
     #root: ShadowRoot | HTMLElement;
     #resolveUpdate: (() => void) | null = null;
@@ -73,6 +76,9 @@ export function component<
           const style = document.createElement("style");
           style.textContent = options.styles;
           this.#root.appendChild(style);
+        }
+        if (options.adoptedStyleSheets) {
+          this.#root.adoptedStyleSheets = options.adoptedStyleSheets;
         }
       } else {
         this.#root = this;
@@ -112,15 +118,12 @@ export function component<
     }
 
     async connectedCallback() {
+      options.onConnected?.(this);
       this.render();
     }
 
-    setAttribute(qualifiedName: string, value: string): void {
-      super.setAttribute(qualifiedName, value);
-    }
-
-    removeAttribute(qualifiedName: string): void {
-      super.removeAttribute(qualifiedName);
+    async disconnectedCallback() {
+      options.onDisconnected?.(this);
     }
 
     attributeChangedCallback(

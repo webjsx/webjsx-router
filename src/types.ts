@@ -19,4 +19,8 @@ export type ComponentGenerator<TProps> = (
 export interface ComponentOptions {
   shadow?: "open" | "closed";
   styles?: string;
+  adoptedStyleSheets?: CSSStyleSheet[];
+  onConnected?: (component: HTMLElement & BloomComponent) => void;
+  onDisconnected?: (component: HTMLElement & BloomComponent) => void;
+  extends?: typeof HTMLElement;
 }

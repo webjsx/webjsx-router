@@ -4,8 +4,6 @@ import {
   PageGenerator
 } from "./types.js";
 
-type PropType = string | number | boolean | object | null | undefined;
-
 export { component } from "./component.js";
 
 export class Bloom {
