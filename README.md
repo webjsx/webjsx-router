@@ -1,6 +1,6 @@
 # Bloom: A Web Component Framework
 
-Build lightweight, efficient web applications using a unique JavaScript generator-based component system with Bloom.
+Build lightweight, efficient web applications using Async Generators and Web Components.
 
 ## Core Pattern
 
