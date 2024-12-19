@@ -1,4 +1,4 @@
-# Bloom: A Web Component Framework
+# Bloom: An experimental UI framework
 
 Bloom enables you to build efficient, lightweight web applications with Web Components and Asynchronous Generators.
 
