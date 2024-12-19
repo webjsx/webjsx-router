@@ -37,7 +37,7 @@ describe("BloomComponent - Attributes", () => {
     element.setAttribute("hello", "universe");
     document.body.appendChild(element);
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     expect(webComponent!.foo).to.equal("baz");
     expect(webComponent!.hello).to.equal("universe");

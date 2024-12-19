@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Bloom } from "../index.js";
+import { Bloom, BloomComponent } from "../index.js";
 import "./setup.js";
 import { setupJSDOM } from "./setup.js";
 import * as webjsx from "webjsx";
@@ -43,6 +43,7 @@ describe("BloomComponent - Function Props", () => {
     const button = element.querySelector(
       '[data-testid="button"]'
     ) as HTMLElement;
+
     button.click();
 
     expect(clicked).to.be.true;
@@ -95,7 +96,9 @@ describe("BloomComponent - Function Props", () => {
         );
       },
       {
-        onClick: (val: string) => (clickValue = val),
+        onClick: (val: string) => {
+          clickValue = val;
+        },
         value: "test",
       }
     );

@@ -12,28 +12,28 @@ function isSerializableProp(value: any): boolean {
   return type === "string" || type === "number" || type === "boolean";
 }
 
-function isFunctionProp(value: any): value is FunctionPropType {
-  return typeof value === "function";
-}
-
 function deserializeAttribute(
   value: string | null,
   originalPropValue: any
 ): any {
   if (value === null) return value;
   const type = typeof originalPropValue;
+
   switch (type) {
     case "number":
       return Number(value);
     case "boolean":
-      return true;
+      return value === "";
     default:
       return value;
   }
 }
 
-function serializeProp(value: any): string {
-  return typeof value === "boolean" ? "" : String(value);
+function serializeProp(value: any): string | null {
+  if (typeof value === "boolean") {
+    return value ? "" : null;
+  }
+  return String(value);
 }
 
 export function defineComponent<
@@ -41,18 +41,14 @@ export function defineComponent<
 >(
   name: string,
   generator: ComponentGenerator<TProps>,
-  initialProps: TProps,
+  defaultProps: TProps,
   options: ComponentOptions = {}
 ): void {
   const observedProps = new Set<string>();
   const nonObservedProps = new Set<string>();
-  const functionProps = new Set<string>();
 
-  for (const [key, value] of Object.entries(initialProps)) {
-    if (isFunctionProp(value)) {
-      functionProps.add(key);
-      nonObservedProps.add(key);
-    } else if (isSerializableProp(value)) {
+  for (const [key, value] of Object.entries(defaultProps)) {
+    if (isSerializableProp(value)) {
       observedProps.add(key);
     } else {
       nonObservedProps.add(key);
@@ -60,85 +56,71 @@ export function defineComponent<
   }
 
   class BloomComponentImpl extends HTMLElement implements BloomComponent {
-    private iterator: AsyncGenerator<webjsx.VNode, void, void>;
-    private root: ShadowRoot | HTMLElement;
-    private _isConnected = false;
-    private resolveUpdate: (() => void) | null = null;
-    private currentVNode: webjsx.VNode | null = null;
+    #iterator: AsyncGenerator<webjsx.VNode, void, void>;
+    #root: ShadowRoot | HTMLElement;
+    #resolveUpdate: (() => void) | null = null;
+    renderPromise: Promise<void> | null = null;
+    props: Partial<TProps> = {};
+
+    #_hasInitialized = false;
 
     constructor() {
       super();
 
       if (options.shadow) {
-        this.root = this.attachShadow({ mode: options.shadow });
+        this.#root = this.attachShadow({ mode: options.shadow });
         if (options.styles) {
           const style = document.createElement("style");
           style.textContent = options.styles;
-          this.root.appendChild(style);
+          this.#root.appendChild(style);
         }
       } else {
-        this.root = this;
+        this.#root = this;
       }
 
-      Object.entries(initialProps).forEach(([key, value]) => {
-        (this as any)[key] = value;
-      });
-
-      Array.from(this.attributes).forEach((attr) => {
-        const value = attr.value;
-        const key = attr.name;
-        const originalValue = initialProps[key as keyof TProps];
-        if (originalValue !== undefined && !isFunctionProp(originalValue)) {
-          (this as any)[key] = deserializeAttribute(value, originalValue);
+      // Initialize non-serializable props in constructor
+      Object.entries(defaultProps).forEach(([key, value]) => {
+        if (!isSerializableProp(value)) {
+          this.props[key as keyof TProps] = value as TProps[keyof TProps];
         }
       });
 
-      this.iterator = generator(
+      this.#iterator = generator(
         this as unknown as HTMLElement & BloomComponent & TProps
       );
     }
 
-    get connected(): boolean {
-      return this._isConnected;
+    #ensureInitialization() {
+      if (!this.#_hasInitialized) {
+        // Initialize attributes only on first connect
+        Object.entries(defaultProps).forEach(([key, value]) => {
+          if (isSerializableProp(value)) {
+            // Only set if no attribute exists
+            if (!this.hasAttribute(key)) {
+              const serialized = serializeProp(value);
+              if (serialized !== null) {
+                this.setAttribute(key, serialized);
+              }
+            }
+          }
+        });
+
+        this.#_hasInitialized = true;
+
+        this.#startRenderLoop();
+      }
     }
 
     async connectedCallback() {
-      this._isConnected = true;
-      await this.startRenderLoop();
+      this.render();
     }
 
-    disconnectedCallback() {
-      this._isConnected = false;
-      this.resolveUpdate?.();
-      this.resolveUpdate = null;
-      this.currentVNode = null;
+    setAttribute(qualifiedName: string, value: string): void {
+      super.setAttribute(qualifiedName, value);
     }
 
-    setAttribute(name: string, value: string): void {
-      super.setAttribute(name, value);
-      if (functionProps.has(name)) return;
-
-      
-      const currentPropValue = initialProps[name as keyof TProps];
-      const parsedValue = deserializeAttribute(value, currentPropValue);
-      (this as any)[name] = parsedValue;
-
-      if (this._isConnected) {
-        this.render();
-      }
-    }
-
-    removeAttribute(name: string): void {
-      super.removeAttribute(name);
-      if (functionProps.has(name)) return;
-
-      const currentPropValue = initialProps[name as keyof TProps];
-      const parsedValue = deserializeAttribute(null, currentPropValue);
-      (this as any)[name] = parsedValue;
-
-      if (this._isConnected) {
-        this.render();
-      }
+    removeAttribute(qualifiedName: string): void {
+      super.removeAttribute(qualifiedName);
     }
 
     attributeChangedCallback(
@@ -146,38 +128,90 @@ export function defineComponent<
       oldValue: string | null,
       newValue: string | null
     ) {
-      if (oldValue === newValue || functionProps.has(name)) return;
+      if (oldValue === newValue) return;
 
-      const currentPropValue = initialProps[name as keyof TProps];
-      const parsedValue = deserializeAttribute(newValue, currentPropValue);
-      (this as any)[name] = parsedValue;
+      const originalValue = defaultProps[name as keyof TProps];
+      const oldParsedValue = deserializeAttribute(oldValue, originalValue);
+      const newParsedValue = deserializeAttribute(newValue, originalValue);
 
-      if (this._isConnected) {
+      if (oldParsedValue !== newParsedValue) {
+        this.props[name as keyof TProps] =
+          newParsedValue as TProps[keyof TProps];
         this.render();
       }
     }
 
     render() {
-      this.resolveUpdate?.();
+      this.#ensureInitialization();
+
+      this.renderPromise =
+        this.renderPromise ??
+        new Promise<void>((resolve) => {
+          this.#resolveUpdate = resolve;
+        });
+
+      this.#resolveUpdate!();
     }
 
-    private async startRenderLoop() {
-      while (this._isConnected) {
-        const { value: vdom, done } = await this.iterator.next();
-        if (done || !this._isConnected) break;
+    async #startRenderLoop() {
+      while (true) {
+        await this.renderPromise;
 
-        this.currentVNode = vdom;
-        webjsx.applyDiff(this.root, vdom);
+        this.renderPromise = null;
+        this.#resolveUpdate = null;
 
-        await new Promise<void>((resolve) => {
-          this.resolveUpdate = resolve;
-        });
+        const { value: vdom, done } = await this.#iterator.next();
+        if (done) break;
+
+        // if renderPromise is not null, someone else might have triggered another render.
+        this.renderPromise =
+          this.renderPromise ??
+          new Promise<void>((resolve) => {
+            this.#resolveUpdate = resolve;
+          });
+
+        webjsx.applyDiff(this.#root, vdom);
       }
     }
 
     static get observedAttributes(): string[] {
-      return Array.from(observedProps);
+      return Array.from(observedProps) as string[];
     }
+  }
+
+  for (const [propName, initialValue] of Object.entries(defaultProps)) {
+    Object.defineProperty(BloomComponentImpl.prototype, propName, {
+      get() {
+        const thisItem: BloomComponentImpl = this;
+        if (isSerializableProp(initialValue)) {
+          const attr = thisItem.getAttribute(propName);
+          return deserializeAttribute(attr, initialValue);
+        } else {
+          return thisItem.props[propName as keyof TProps];
+        }
+      },
+      set(value) {
+        const thisItem: BloomComponentImpl = this;
+        if (isSerializableProp(initialValue)) {
+          if (value === null) {
+            thisItem.removeAttribute(propName);
+          } else {
+            const serialized = serializeProp(value);
+            if (serialized === null) {
+              thisItem.removeAttribute(propName);
+            } else {
+              thisItem.setAttribute(propName, serialized);
+            }
+          }
+        } else {
+          thisItem.props[propName as keyof TProps] =
+            value as TProps[keyof TProps];
+          thisItem.render();
+        }
+      },
+      configurable: true,
+      enumerable: true,
+    });
   }
 
   const elementName = name.includes("-") ? name : `bloom-${name}`;

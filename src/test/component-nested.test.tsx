@@ -24,7 +24,7 @@ describe("BloomComponent - Nested Components", () => {
     bloom.component(
       "child-counter",
       async function* (component) {
-        let count = parseInt(component.initialCount || "0");
+        let count = component.initialcount;
 
         const increment = () => {
           count++;
@@ -34,10 +34,12 @@ describe("BloomComponent - Nested Components", () => {
         while (true) {
           yield (
             <div>
-              <span data-testid={`count-${component.componentId}`}>{count}</span>
+              <span data-testid={`counter-${component.componentid}`}>
+                {count}
+              </span>
               <button
                 onclick={increment}
-                data-testid={`button-${component.componentId}`}
+                data-testid={`button-${component.componentid}`}
               >
                 +
               </button>
@@ -45,7 +47,7 @@ describe("BloomComponent - Nested Components", () => {
           );
         }
       },
-      { initialCount: "0", componentId: 0 }
+      { initialcount: 0, componentid: 0 }
     );
 
     bloom.component(
@@ -65,8 +67,8 @@ describe("BloomComponent - Nested Components", () => {
               <button onclick={incrementParent} data-testid="parent-button">
                 +
               </button>
-              <child-counter componentId="1" initialCount="0" />
-              <child-counter componentId="2" initialCount="5" />
+              <child-counter componentid="1" initialcount="0" />
+              <child-counter componentid="2" initialcount="5" />
             </div>
           );
         }
@@ -82,9 +84,9 @@ describe("BloomComponent - Nested Components", () => {
     const getParentCount = () =>
       element.querySelector('[data-testid="parent-count"]')!.textContent;
     const getChild1Count = () =>
-      element.querySelector('[data-testid="count-1"]')!.textContent;
+      element.querySelector('[data-testid="counter-1"]')!.textContent;
     const getChild2Count = () =>
-      element.querySelector('[data-testid="count-2"]')!.textContent;
+      element.querySelector('[data-testid="counter-2"]')!.textContent;
 
     const parentButton = element.querySelector(
       '[data-testid="parent-button"]'
@@ -174,6 +176,7 @@ describe("BloomComponent - Nested Components", () => {
       childElement.querySelector('[data-testid="name"]')!.textContent;
     const getValue = () =>
       childElement.querySelector('[data-testid="value"]')!.textContent;
+
     const button = element.querySelector(
       '[data-testid="update"]'
     ) as HTMLElement;
