@@ -1,6 +1,10 @@
-# Bloom: Component Framework for Web Apps
+# Bloom: Web Component Framework
 
-Lightweight component & routing framework for building web applications. Built on native Web Components.
+A lightweight component framework that uses JavaScript generators to build web applications.
+
+## Building a Hacker News Clone
+
+We'll build a clone of Hacker News (HN) - a popular tech news aggregation site. It'll demonstrate lists, nested comments, and real-time updates.
 
 ## Installation
 
@@ -8,561 +12,222 @@ Lightweight component & routing framework for building web applications. Built o
 npm install bloom-router
 ```
 
-## Basic Usage
+## Core Pattern
 
-```typescript
-import { Bloom } from "bloom-router";
+In Bloom, components follow this pattern:
 
-// Initialize
-const app = new Bloom("#app");
+1. Generator yields current view
+2. Waits for next render request
+3. Repeat
 
-// Define component
-app.component("counter-app", async function* (component, attributes) {
+The render loop looks like this:
+
+```ts
+app.component("counter", async function* (component) {
   let count = 0;
 
-  const increment = () => {
-    count++;
-    component.render();
-  };
-
   while (true) {
     yield (
       <div>
-        <h1>Count: {count}</h1>
-        <button onclick={increment}>Increment</button>
+        Count: {count}
+        <button
+          onclick={() => {
+            count++;
+            component.render(); // Request next render
+          }}
+        >
+          Add
+        </button>
       </div>
     );
   }
 });
-
-// Use in HTML
-<counter-app></counter-app>;
 ```
 
-## Components
+When `component.render()` is called, the generator continues and yields the next view with updated data.
 
-### State & Events
+## Building the HN Clone
 
-```typescript
-// Component with multiple state values
-app.component("user-form", async function* (component, attributes) {
-  let name = "";
-  let email = "";
+Let's build our app piece by piece. First, we'll need some types and utilities:
 
-  const updateName = (e: Event) => {
-    name = (e.target as HTMLInputElement).value;
+```ts
+type Story = {
+  id: number;
+  title: string;
+  url?: string;
+  score: number;
+  by: string;
+  descendants: number;
+};
+
+async function fetchStories(): Promise<Story[]> {
+  const ids = await fetch(
+    "https://hacker-news.firebaseio.com/v0/topstories.json"
+  ).then((r) => r.json());
+  return Promise.all(
+    ids
+      .slice(0, 30)
+      .map((id) =>
+        fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(
+          (r) => r.json()
+        )
+      )
+  );
+}
+```
+
+### Story List Component
+
+The home page shows a list of top stories. Here's how we build it:
+
+```ts
+app.component("story-list", async function* (component) {
+  let stories: Story[] = [];
+
+  // Data fetching happens outside the render loop
+  const fetchData = async () => {
+    stories = await fetchStories();
     component.render();
   };
 
-  const updateEmail = (e: Event) => {
-    email = (e.target as HTMLInputElement).value;
-    component.render();
-  };
-
-  const submit = (e: Event) => {
-    e.preventDefault();
-    console.log({ name, email });
-  };
+  fetchData();
+  setInterval(fetchData, 60000); // Refresh every minute
 
   while (true) {
     yield (
-      <form onsubmit={submit}>
-        <input
-          type="text"
-          value={name}
-          oninput={updateName}
-          placeholder="Name"
-        />
-        <input
-          type="email"
-          value={email}
-          oninput={updateEmail}
-          placeholder="Email"
-        />
-        <button type="submit">Submit</button>
-      </form>
+      <div class="stories">
+        {stories.map((story) => (
+          <div class="story">
+            <a href={story.url} target="_blank">
+              {story.title}
+            </a>
+            <div class="meta">
+              {story.score} points by {story.by} |
+              <a href="#" onclick={() => bloom.goto(`/story/${story.id}`)}>
+                {story.descendants} comments
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
     );
   }
 });
 ```
 
-### Attributes
+### Comment Component
 
-```typescript
-// Component that observes attributes
+Comments in HN are nested - each comment can have child comments. We'll use recursion:
+
+```ts
+type Comment = {
+  id: number;
+  by: string;
+  text: string;
+  kids?: number[];
+};
+
 app.component(
-  "hello-user",
-  async function* (component, attributes) {
-    while (true) {
-      yield <div>Hello {attributes.name || "Anonymous"}!</div>;
-    }
-  },
-  {
-    observedAttributes: ["name"],
-  }
-);
+  "comment-item",
+  async function* (component: { commentId: number }) {
+    let comment: Comment | null = null;
 
-// Usage
-<hello-user name="John"></hello-user>;
-```
-
-### Shadow DOM
-
-```typescript
-app.component(
-  "shadow-card",
-  async function* (component, attributes) {
-    while (true) {
-      yield (
-        <div class="card">
-          <style>
-            {`
-            .card {
-              border: 1px solid #ccc;
-              padding: 1rem;
-            }
-          `}
-          </style>
-          <slot>Default Content</slot>
-        </div>
-      );
-    }
-  },
-  {
-    shadow: "open", // or "closed"
-  }
-);
-
-// Usage
-<shadow-card>
-  <h2>Card Title</h2>
-  <p>Card content</p>
-</shadow-card>;
-```
-
-### Slots
-
-```typescript
-// Component with named slots
-app.component(
-  "layout-component",
-  async function* (component, attributes) {
-    while (true) {
-      yield (
-        <div class="layout">
-          <header>
-            <slot name="header">Default Header</slot>
-          </header>
-          <main>
-            <slot>Main Content</slot>
-          </main>
-          <footer>
-            <slot name="footer">Default Footer</slot>
-          </footer>
-        </div>
-      );
-    }
-  },
-  { shadow: "open" }
-);
-
-// Usage
-<layout-component>
-  <h1 slot="header">My App</h1>
-  <div>Main content here</div>
-  <p slot="footer">Footer content</p>
-</layout-component>;
-```
-
-### Nested Components
-
-```typescript
-// Child component
-app.component(
-  "todo-item",
-  async function* (component, attributes) {
-    const toggle = () => {
-      component.setAttribute(
-        "completed",
-        attributes.completed === "true" ? "false" : "true"
-      );
+    const fetchComment = async () => {
+      comment = await fetch(
+        `https://hacker-news.firebaseio.com/v0/item/${component.commentId}.json`
+      ).then((r) => r.json());
+      component.render();
     };
 
+    fetchComment();
+
     while (true) {
-      yield (
-        <li
-          class={attributes.completed === "true" ? "completed" : ""}
-          onclick={toggle}
-        >
-          {attributes.text}
-        </li>
-      );
-    }
-  },
-  {
-    observedAttributes: ["completed", "text"],
-  }
-);
-
-// Parent component
-app.component("todo-list", async function* (component, attributes) {
-  const items = [
-    { id: 1, text: "Learn Bloom", completed: false },
-    { id: 2, text: "Build App", completed: true },
-  ];
-
-  while (true) {
-    yield (
-      <ul>
-        {items.map((item) => (
-          <todo-item text={item.text} completed={item.completed.toString()} />
-        ))}
-      </ul>
-    );
-  }
-});
-```
-
-## Routing
-
-### Basic Routing
-
-```typescript
-const app = new Bloom("#app");
-
-// Define routes
-app.page("/", async function* () {
-  yield <h1>Home</h1>;
-});
-
-app.page("/about", async function* () {
-  yield <h1>About</h1>;
-});
-
-// Dynamic routes
-app.page("/users/:id", async function* (params) {
-  yield <h1>User {params.id}</h1>;
-});
-
-// Navigate
-app.goto("/about");
-```
-
-### Route Parameters & Query Strings
-
-```typescript
-app.page("/search/:category", async function* (params, query) {
-  const searchParams = new URLSearchParams(query);
-  const sort = searchParams.get("sort") || "default";
-
-  yield (
-    <div>
-      <h1>Search {params.category}</h1>
-      <p>Sort by: {sort}</p>
-    </div>
-  );
-});
-
-// URL: /search/books?sort=title
-```
-
-### Route Components
-
-```typescript
-// Components can be used in routes
-app.component("user-profile", async function* (component, attributes) {
-  while (true) {
-    yield (
-      <div>
-        <h2>Profile for user {attributes.id}</h2>
-      </div>
-    );
-  }
-});
-
-app.page("/users/:id", async function* (params) {
-  yield <user-profile id={params.id} />;
-});
-```
-
-## Testing
-
-### Component Testing
-
-```typescript
-import { expect } from "chai";
-import { Bloom } from "bloom-router";
-
-describe("Counter Component", () => {
-  let bloom: Bloom;
-
-  beforeEach(() => {
-    document.body.innerHTML = '<div id="app"></div>';
-    bloom = new Bloom("#app");
-  });
-
-  it("should increment counter", async () => {
-    bloom.component("test-counter", async function* (component) {
-      let count = 0;
-
-      const increment = () => {
-        count++;
-        component.render();
-      };
-
-      while (true) {
+      if (!comment) {
+        yield <div>Loading...</div>;
+      } else {
         yield (
-          <div>
-            <span data-testid="count">{count}</span>
-            <button onclick={increment}>+</button>
+          <div class="comment">
+            <div class="meta">{comment.by}</div>
+            <div class="text" innerHTML={comment.text}></div>
+            <div class="replies">
+              {comment.kids?.map((id) => (
+                <comment-item commentId={id} />
+              ))}
+            </div>
           </div>
         );
       }
-    });
-
-    const element = document.createElement("test-counter");
-    document.body.appendChild(element);
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    const count = element.querySelector('[data-testid="count"]');
-    const button = element.querySelector("button");
-
-    expect(count!.textContent).to.equal("0");
-
-    button!.click();
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(count!.textContent).to.equal("1");
-  });
-});
-```
-
-### Route Testing
-
-```typescript
-describe("Router", () => {
-  let bloom: Bloom;
-
-  beforeEach(() => {
-    document.body.innerHTML = '<div id="app"></div>';
-    bloom = new Bloom("#app");
-  });
-
-  it("should render route content", async () => {
-    bloom.page("/test", async function* () {
-      yield <div id="test-route">Test Route</div>;
-    });
-
-    await bloom.goto("/test");
-
-    const element = document.getElementById("test-route");
-    expect(element).to.exist;
-    expect(element!.textContent).to.equal("Test Route");
-  });
-
-  it("should handle route params", async () => {
-    bloom.page("/users/:id", async function* (params) {
-      yield <div id="user-route">User {params.id}</div>;
-    });
-
-    await bloom.goto("/users/123");
-
-    const element = document.getElementById("user-route");
-    expect(element!.textContent).to.equal("User 123");
-  });
-});
-```
-
-## TypeScript Types
-
-```typescript
-// Component Types
-type ComponentGenerator = (
-  component: any,
-  attributes: Record<string, string>
-) => AsyncGenerator<VNode, void, void>;
-
-interface ComponentOptions {
-  shadow?: "open" | "closed";
-  observedAttributes?: string[];
-}
-
-// Route Types
-type PageGenerator = (
-  params: Record<string, string>,
-  query: string
-) => AsyncGenerator<VNode, void, void>;
-
-// Component Instance
-declare class BloomComponent extends HTMLElement {
-  connected: boolean;
-  render(): void;
-  setAttribute(name: string, value: string): void;
-}
-
-// Framework Instance
-declare class Bloom {
-  constructor(elementOrId: string | HTMLElement);
-
-  component(
-    name: string,
-    generator: ComponentGenerator,
-    options?: ComponentOptions
-  ): void;
-
-  page(pattern: string, pageGenerator: PageGenerator): void;
-
-  goto(path: string): Promise<void>;
-
-  render(): void;
-}
-```
-
-## Complete Examples
-
-### Todo App
-
-```typescript
-interface Todo {
-  id: number;
-  text: string;
-  completed: boolean;
-}
-
-app.component("todo-app", async function* (component) {
-  let todos: Todo[] = [];
-  let newTodo = "";
-
-  const addTodo = (e: Event) => {
-    e.preventDefault();
-    if (!newTodo.trim()) return;
-
-    todos = [
-      ...todos,
-      {
-        id: Date.now(),
-        text: newTodo,
-        completed: false,
-      },
-    ];
-    newTodo = "";
-    component.render();
-  };
-
-  const toggleTodo = (id: number) => {
-    todos = todos.map((todo) =>
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    );
-    component.render();
-  };
-
-  const updateNewTodo = (e: Event) => {
-    newTodo = (e.target as HTMLInputElement).value;
-    component.render();
-  };
-
-  while (true) {
-    yield (
-      <div class="todo-app">
-        <h1>Todo List</h1>
-
-        <form onsubmit={addTodo}>
-          <input
-            type="text"
-            value={newTodo}
-            oninput={updateNewTodo}
-            placeholder="What needs to be done?"
-          />
-          <button type="submit">Add</button>
-        </form>
-
-        <ul>
-          {todos.map((todo) => (
-            <li
-              key={todo.id}
-              class={todo.completed ? "completed" : ""}
-              onclick={() => toggleTodo(todo.id)}
-            >
-              {todo.text}
-            </li>
-          ))}
-        </ul>
-
-        <div class="todo-stats">
-          {todos.length} items,
-          {todos.filter((t) => !t.completed).length} remaining
-        </div>
-      </div>
-    );
-  }
-});
-```
-
-### Blog with Routing
-
-```typescript
-interface Post {
-  id: number;
-  title: string;
-  content: string;
-}
-
-// Post List Component
-app.component("post-list", async function* (component) {
-  const posts: Post[] = [
-    { id: 1, title: "First Post", content: "..." },
-    { id: 2, title: "Second Post", content: "..." },
-  ];
-
-  while (true) {
-    yield (
-      <div class="posts">
-        {posts.map((post) => (
-          <article>
-            <h2>{post.title}</h2>
-            <a href={`/posts/${post.id}`}>Read more</a>
-          </article>
-        ))}
-      </div>
-    );
-  }
-});
-
-// Single Post Component
-app.component(
-  "post-view",
-  async function* (component, attributes) {
-    const post = {
-      id: parseInt(attributes.id),
-      title: `Post ${attributes.id}`,
-      content: "...",
-    };
-
-    while (true) {
-      yield (
-        <article>
-          <h1>{post.title}</h1>
-          <div class="content">{post.content}</div>
-          <a href="/posts">Back to posts</a>
-        </article>
-      );
     }
-  },
-  {
-    observedAttributes: ["id"],
   }
 );
-
-// Routes
-app.page("/posts", async function* () {
-  yield <post-list />;
-});
-
-app.page("/posts/:id", async function* (params) {
-  yield <post-view id={params.id} />;
-});
-
-// Initialize
-app.goto("/posts");
 ```
+
+### Story Detail Component
+
+When users click a story's comments, we show the story detail page:
+
+```ts
+app.component("story-detail", async function* (component: { storyId: number }) {
+  let story: Story | null = null;
+
+  const fetchStory = async () => {
+    story = await fetch(
+      `https://hacker-news.firebaseio.com/v0/item/${component.storyId}.json`
+    ).then((r) => r.json());
+    component.render();
+  };
+
+  fetchStory();
+
+  while (true) {
+    if (!story) {
+      yield <div>Loading story...</div>;
+    } else {
+      yield (
+        <div class="story-detail">
+          <h1>
+            <a href={story.url}>{story.title}</a>
+          </h1>
+          <div class="meta">
+            {story.score} points by {story.by}
+          </div>
+          <div class="comments">
+            {story.kids?.map((id) => (
+              <comment-item commentId={id} />
+            ))}
+          </div>
+        </div>
+      );
+    }
+  }
+});
+```
+
+### Routing
+
+Finally, let's wire everything up with routes:
+
+```ts
+// Home page
+app.page("/", async function* () {
+  while (true) {
+    yield <story-list />;
+  }
+});
+
+// Story detail page
+app.page("/story/:id", async function* (params) {
+  while (true) {
+    yield <story-detail storyId={parseInt(params.id, 10)} />;
+  }
+});
+
+// Start the app
+bloom.goto("/");
+```
+
+No complex state management, no effect hooks, no dependency arrays - just simple JavaScript generators handling the flow of data to views.
+
+## License
+
+MIT
