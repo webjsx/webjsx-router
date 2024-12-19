@@ -1,22 +1,18 @@
-# Bloom: Web Component Framework
+# Bloom: A Web Component Framework
 
-A lightweight component framework that uses JavaScript generators to build web applications.
-
-## Installation
-
-```bash
-npm install bloom-router
-```
+Build lightweight, efficient web applications using a unique JavaScript generator-based component system with Bloom.
 
 ## Core Pattern
 
-In Bloom, components follow this pattern:
+The core design of Bloom revolves around a simplified component lifecycle, leveraging JavaScript generators to manage UI rendering. Here's how it works:
 
-1. Generator yields current view
-2. Waits for next render request
-3. Repeat
+1. **Generator Initiation**: Each component is defined as an asynchronous generator function and is exposed as a Web Component.
+2. **Yield Current View**: On each iteration, the generator yields the current view, which is a representation of the UI at that point in time.
+3. **Wait for Trigger**: After yielding the view, the generator pauses, waiting for a trigger to render the next view. This trigger typically comes from user interactions or other events (such as data refreshing) that necessitate a UI update.
+4. **Render Update**: Upon receiving a trigger, such as a call to `component.render()`, the generator resumes operation, potentially with updated state leading to a new UI representation.
+5. **Repeat**: This process repeats each time the component needs to update the UI.
 
-The render loop looks like this:
+The following snippet illustrates a simple counter component using Bloom's core pattern:
 
 ```ts
 app.component("counter", async function* (component) {
@@ -29,7 +25,7 @@ app.component("counter", async function* (component) {
         <button
           onclick={() => {
             count++;
-            component.render(); // Request next render
+            component.render(); // Trigger next render
           }}
         >
           Add
@@ -39,6 +35,8 @@ app.component("counter", async function* (component) {
   }
 });
 ```
+
+In this example, the component renders a count and a button. Clicking the button increases the count and explicitly requests the next render, causing the generator to yield a new view with the updated count.
 
 When `component.render()` is called, the generator continues and yields the next view with updated data.
 
