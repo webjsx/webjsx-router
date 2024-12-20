@@ -96,7 +96,7 @@ component(
       if (!stories) {
         yield <div>Loading top stories...</div>;
       } else {
-        yield (
+        return (
           <div>
             {stories.map((story: Story) => (
               <div class="story-list-item">
@@ -151,7 +151,7 @@ component(
           </div>
         );
       } else {
-        yield (
+        return (
           <div>
             <a class="back-link" href="#" onclick={() => bloom.goto("/")}>
               &larr; Back
@@ -207,7 +207,7 @@ component(
       if (!parentData?.kids?.length) {
         yield <div>No comments yet.</div>;
       } else {
-        yield (
+        return (
           <div class="comments-container">
             {parentData.kids.map((kidId: number) => (
               <comment-item commentid={kidId} />
@@ -382,13 +382,11 @@ component(
   async function* (
     component: HTMLElement & BloomComponent & { username: string }
   ) {
-    while (true) {
-      yield (
-        <a href="#" onclick={() => bloom.goto(`/user/${component.username}`)}>
-          {component.username}
-        </a>
-      );
-    }
+    return (
+      <a href="#" onclick={() => bloom.goto(`/user/${component.username}`)}>
+        {component.username}
+      </a>
+    );    
   },
   { username: "" }
 );
