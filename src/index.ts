@@ -71,15 +71,20 @@ export class Bloom {
     while (this.currentIterator) {
       const { value: vdom, done } = await this.currentIterator.next();
 
-      if (done) break;
+      if (done) {
+        if (vdom) {
+          webjsx.applyDiff(this.appContainer, vdom);
+        }
+        break;
+      } else {
+        webjsx.applyDiff(this.appContainer, vdom);
 
-      webjsx.applyDiff(this.appContainer, vdom);
+        this.resolveUpdate!();
 
-      this.resolveUpdate!();
+        this.resetUpdatePromise();
 
-      this.resetUpdatePromise();
-
-      await this.updatePromise;
+        await this.updatePromise;
+      }
     }
   }
 }
