@@ -25,6 +25,21 @@ To use Bloom in your project:
 npm install bloom-router webjsx
 ```
 
+### TypeScript
+
+Ensure your `tsconfig.json` is set up to handle JSX.
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "webjsx"
+  }
+}
+```
+
+Advanced instructions can be found on [WebJSX](https://webjsx.org).
+
 ## Component API
 
 ### Declaring Components
