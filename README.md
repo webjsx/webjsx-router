@@ -432,23 +432,17 @@ Finally, we configure the routes for our application:
 ```ts
 const bloom = new Bloom("app");
 
-bloom.page("/", async function* () {
-  while (true) {
-    yield <story-list />;
-  }
+bloom.page('/', async function* () {
+  return <story-list />;
 });
 
-bloom.page("/story/:id", async function* (params) {
+bloom.page('/story/:id', async function* (params) {
   const storyId = parseInt(params.id, 10);
-  while (true) {
-    yield <story-detail storyid={storyId} />;
-  }
+  return <story-detail storyid={storyId} />;
 });
 
-bloom.page("/user/:id", async function* (params) {
-  while (true) {
-    yield <user-profile username={params.id} />;
-  }
+bloom.page('/user/:id', async function* (params) {
+  return <user-profile username={params.id} />;
 });
 
 bloom.goto("/");
