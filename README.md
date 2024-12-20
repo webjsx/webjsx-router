@@ -1,6 +1,6 @@
 # Bloom: An Experimental UI Framework
 
-Bloom enables you to build efficient, lightweight web applications using Web Components and Asynchronous Generators, powered by `bloom-router` and `webjsx`.
+Bloom is an experimental approach to building applications using Web Components and Asynchronous Generators, powered by `bloom-router` and `webjsx`.
 
 ## Core Concepts
 
