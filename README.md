@@ -1,4 +1,4 @@
-# Bloom: An experimental Web Components framework
+# Bloom: An experimental Web Component framework
 
 Bloom is an experimental approach to managing front-end state using Web Components and Asynchronous Generators. Under the hood, it uses `bloom-router` and `webjsx`.
 
