@@ -33,7 +33,13 @@ Advanced instructions can be found on [WebJSX](https://webjsx.org).
 
 ### Declaring Components
 
-Use the `component` function to define reusable UI elements:
+### Declaring Components
+
+In Bloom, creating a component is both simple and powerful, leveraging the `component` function to define reusable UI elements that seamlessly integrate into the application. Components in Bloom are fundamentally Web Components, meaning they are native to the browser and framework-agnostic. This approach ensures that they can be reused across different projects or frameworks without additional configuration.
+
+A Bloom component is declared using the `component` function, which takes the component's name as the first parameter and an asynchronous generator function as the second. This generator function defines the rendering logic and dynamically yields views as the component's state changes. Additionally, you can pass a default set of properties as the third argument, allowing you to initialize the component's configuration.
+
+For instance, the following example demonstrates a simple counter component:
 
 ```ts
 import { component } from "bloom-router";
@@ -58,6 +64,38 @@ component("example-component", async function* (component) {
   }
 });
 ```
+
+This example showcases the dynamic nature of Bloom components. Here, the `while (true)` loop enables continuous rendering, and the `yield` keyword allows the component to produce a new view whenever the state changes. The `component.render()` method is explicitly called to trigger a re-render, ensuring that the view updates as the state (in this case, `count`) changes. This approach is particularly useful for scenarios where the state evolves frequently or asynchronously.
+
+However, you’re not limited to `yield`. In cases where a component’s output does not need to dynamically update, you can return a static JSX view instead of using the generator style. This is useful for simpler components where the content is fixed or reaches a final state. For example:
+
+```ts
+component("static-component", function (component) {
+  return (
+    <div>
+      <h1>Welcome to Bloom!</h1>
+      <p>This is a static component.</p>
+    </div>
+  );
+});
+```
+
+By returning a JSX element directly, the component is rendered once, and there’s no need for an ongoing loop or generator functionality. This pattern can simplify your components when state management or frequent updates aren’t required, improving readability and performance in such scenarios.
+
+Another significant feature of Bloom components is their ability to accept and manage properties. Properties can be defined as part of the component declaration, allowing you to create customizable and reusable components. For instance, consider the following component that takes a `title` property:
+
+```ts
+component("custom-title", function (component: HTMLElement & { title: string }) {
+  return (
+    <h2>{component.title}</h2>
+  );
+}, { title: "Default Title" });
+```
+
+In this example, the component renders a heading using the `title` property. The third argument provides a default value for `title`, ensuring the component behaves predictably even if no explicit property value is set.
+
+Bloom's declarative approach to component creation allows you to mix dynamic and static behaviors effortlessly. Whether you’re building a highly interactive component with asynchronous state changes or a static, simple display, Bloom’s API gives you the flexibility to tailor your implementation to the needs of your application. This versatility ensures your components remain intuitive, reusable, and maintainable, regardless of complexity.
+
 
 ## Building an HN Clone
 
