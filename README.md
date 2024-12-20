@@ -8,7 +8,7 @@ Bloom simplifies web application development by leveraging JavaScript’s native
 
 ### Key Features
 
-1. **Web Components**: Components are fully compliant with the Web Components standard, ensuring compatibility across modern browsers.
+1. **Web Components**: Components are generated as Web Components, which you can re-use anywhere on the page natively or from any framework.
 2. **Asynchronous Generators**: Each component is an asynchronous generator, yielding dynamic views and updating seamlessly with state changes.
 3. **Declarative Routing**: Define routes and associate them with components using the `bloom-router` API.
 
@@ -22,7 +22,7 @@ Bloom simplifies web application development by leveraging JavaScript’s native
 To use Bloom in your project:
 
 ```bash
-yarn add bloom-router webjsx
+npm install bloom-router webjsx
 ```
 
 ## Component API
@@ -55,7 +55,7 @@ component("example-component", async function* (component) {
 });
 ```
 
-# Building an HN Clone
+## Building an HN Clone
 
 Let's build a Hacker News (HN) clone using Bloom. This example demonstrates how to create a full-featured web application with components, routing, data fetching, and state management.
 
@@ -113,7 +113,7 @@ component(
 );
 ```
 
-## Story Detail Page
+###Story Detail Page
 
 When a user clicks on a story title, they're taken to the story detail page. This component fetches and displays comprehensive information about a single story, including its title (linked to the original URL), score, author, and the full comment thread. It provides a back navigation link and gracefully handles cases where the story might not be found.
 
@@ -174,7 +174,7 @@ component(
 );
 ```
 
-## Comment System
+###Comment System
 
 The comment system consists of two main components that work together to display threaded discussions:
 
@@ -279,7 +279,7 @@ component(
 );
 ```
 
-## User Profile Page
+###User Profile Page
 
 The user profile page provides detailed information about a user's presence on the platform. It displays the user's karma score, account creation date, about section (if available), and a list of their recent submissions. The component implements type guards to ensure data integrity and handles missing or invalid user data appropriately.
 
@@ -376,7 +376,7 @@ component(
 );
 ```
 
-## User Link Component
+###User Link Component
 
 A utility component used throughout the application to create consistent user profile links. It takes a username prop and renders a clickable link that navigates to that user's profile page.
 
@@ -400,7 +400,7 @@ component(
 );
 ```
 
-## Application Types
+###Application Types
 
 The application uses TypeScript interfaces to ensure type safety across components:
 
@@ -433,7 +433,7 @@ type UserData = {
 };
 ```
 
-## Routing Setup
+###Routing Setup
 
 Finally, we configure the routes for our application:
 
