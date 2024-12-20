@@ -10,11 +10,11 @@ export interface BloomComponent {
 export type PageGenerator = (
   params: Record<string, string>,
   query: string
-) => AsyncGenerator<webjsx.VNode, void, void>;
+) => AsyncGenerator<webjsx.VNode, webjsx.VNode | void, void>;
 
 export type ComponentGenerator<TProps> = (
   component: HTMLElement & BloomComponent & TProps
-) => AsyncGenerator<webjsx.VNode, void, void>;
+) => AsyncGenerator<webjsx.VNode, webjsx.VNode | void, void>;
 
 export interface ComponentOptions {
   shadow?: "open" | "closed";

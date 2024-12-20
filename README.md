@@ -1,33 +1,53 @@
-# Bloom: An experimental UI framework
+# Bloom: An Experimental UI Framework
 
-Bloom enables you to build efficient, lightweight web applications with Web Components and Asynchronous Generators.
+Bloom enables you to build efficient, lightweight web applications using Web Components and Asynchronous Generators, powered by `bloom-router` and `webjsx`.
 
-## Core Pattern
-Bloom uses native JavaScript features to manage UI rendering. Each component is defined as an asynchronous generator, allowing it to yield a dynamic view and respond to events as they come in. Here’s the process:
+## Core Concepts
 
-1. **Generator Initiation**: Each component is defined as an asynchronous generator function and is exposed as a Web Component.
-2. **Yield Current View**: On each iteration, the generator yields the current view, which is a representation of the UI at that point in time.
-3. **Wait for Trigger**: After yielding the view, the generator pauses, waiting for a trigger to render the next view. This trigger typically comes from user interactions or other events (such as data refreshing) that necessitate a UI update.
-4. **Render Update**: Upon receiving a trigger, such as a call to `component.render()`, the generator resumes operation, potentially with updated state leading to a new UI representation.
-5. **Repeat**: This process repeats each time the component needs to update the UI.
+Bloom simplifies web application development by leveraging JavaScript’s native features to manage UI rendering. Components are defined as asynchronous generator functions, and routing is handled declaratively with `bloom-router`.
 
-The following snippet illustrates a simple counter component using Bloom's core pattern:
+### Key Features
+
+1. **Web Components**: Components are fully compliant with the Web Components standard, ensuring compatibility across modern browsers.
+2. **Asynchronous Generators**: Each component is an asynchronous generator, yielding dynamic views and updating seamlessly with state changes.
+3. **Declarative Routing**: Define routes and associate them with components using the `bloom-router` API.
+
+### Example Workflow
+
+- **Generator Workflow**: Components yield a view, wait for events (e.g., user interaction, data updates), and then yield updated views.
+- **Routing**: Pages and navigation are managed with `bloom-router`, ensuring smooth transitions.
+
+## Installation
+
+To use Bloom in your project:
+
+```bash
+yarn add bloom-router webjsx
+```
+
+## Component API
+
+### Declaring Components
+
+Use the `component` function to define reusable UI elements:
 
 ```ts
-app.component("counter", async function* (component) {
+import { component } from "bloom-router";
+
+component("example-component", async function* (component) {
   let count = 0;
 
   while (true) {
     yield (
       <div>
-        Count: {count}
+        <p>Count: {count}</p>
         <button
           onclick={() => {
             count++;
-            component.render(); // Trigger next render
+            component.render();
           }}
         >
-          Add
+          Increment
         </button>
       </div>
     );
@@ -35,17 +55,13 @@ app.component("counter", async function* (component) {
 });
 ```
 
-In this example, the component renders a count and a button. Clicking the button increases the count and explicitly requests the next render, causing the generator to yield a new view with the updated count.
-
-When `component.render()` is called, the generator continues and yields the next view with updated data.
-
 ## Building an HN Clone
 
-The best way to learn is by doing. Let's build a clone of Hacker News (HN) - a popular tech news aggregation site. It'll demonstrate lists, nested comments, and real-time updates.
-If you want to jump right into code, you can [edit it on StackBlitz](https://stackblitz.com/edit/bloom-hn)
+Let’s build a Hacker News (HN) clone with Bloom. The app will include stories, comments, and user profiles.
 
+### Types and Utilities
 
-Let's build our app piece by piece. First, we'll need some types and utilities:
+Define common types and data-fetching utilities:
 
 ```ts
 type Story = {
@@ -54,176 +70,157 @@ type Story = {
   url?: string;
   score: number;
   by: string;
-  descendants: number;
+  descendants?: number;
+  kids?: number[];
 };
 
-async function fetchStories(): Promise<Story[]> {
-  const ids = await fetch(
-    "https://hacker-news.firebaseio.com/v0/topstories.json"
-  ).then((r) => r.json());
-  return Promise.all(
-    ids
-      .slice(0, 30)
-      .map((id) =>
-        fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(
-          (r) => r.json()
-        )
-      )
-  );
-}
-```
-
-### Story List Component
-
-The home page shows a list of top stories. Here's how we build it:
-
-```ts
-app.component("story-list", async function* (component) {
-  let stories: Story[] = [];
-
-  // Data fetching happens outside the render loop
-  const fetchData = async () => {
-    stories = await fetchStories();
-    component.render();
-  };
-
-  fetchData();
-  setInterval(fetchData, 60000); // Refresh every minute
-
-  while (true) {
-    yield (
-      <div class="stories">
-        {stories.map((story) => (
-          <div class="story">
-            <a href={story.url} target="_blank">
-              {story.title}
-            </a>
-            <div class="meta">
-              {story.score} points by {story.by} |
-              <a href="#" onclick={() => bloom.goto(`/story/${story.id}`)}>
-                {story.descendants} comments
-              </a>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-});
-```
-
-### Comment Component
-
-Comments in HN are nested - each comment can have child comments. We'll use recursion:
-
-```ts
-type Comment = {
+type CommentData = {
   id: number;
   by: string;
   text: string;
   kids?: number[];
 };
 
-app.component(
-  "comment-item",
-  async function* (component: { commentId: number }) {
-    let comment: Comment | null = null;
+type UserData = {
+  id: string;
+  created: number;
+  karma: number;
+  about?: string;
+  submitted?: number[];
+};
 
-    const fetchComment = async () => {
-      comment = await fetch(
-        `https://hacker-news.firebaseio.com/v0/item/${component.commentId}.json`
-      ).then((r) => r.json());
-      component.render();
-    };
+async function fetchTopStories(limit = 20): Promise<Story[]> {
+  const topIds = await fetch(
+    "https://hacker-news.firebaseio.com/v0/topstories.json"
+  ).then((res) => res.json());
+  const sliced = topIds.slice(0, limit);
+  return Promise.all(
+    sliced.map((id) =>
+      fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(
+        (res) => res.json()
+      )
+    )
+  );
+}
 
-    fetchComment();
+async function fetchItem<T>(id: number): Promise<T> {
+  return fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(
+    (res) => res.json()
+  );
+}
 
-    while (true) {
-      if (!comment) {
-        yield <div>Loading...</div>;
-      } else {
-        yield (
-          <div class="comment">
-            <div class="meta">{comment.by}</div>
-            <div class="text" innerHTML={comment.text}></div>
-            <div class="replies">
-              {comment.kids?.map((id) => (
-                <comment-item commentId={id} />
-              ))}
-            </div>
-          </div>
-        );
-      }
-    }
-  }
-);
+async function fetchUser(username: string): Promise<UserData> {
+  return fetch(
+    `https://hacker-news.firebaseio.com/v0/user/${username}.json`
+  ).then((res) => res.json());
+}
 ```
 
-### Story Detail Component
+### Components
 
-When users click a story's comments, we show the story detail page:
+#### Story List
+
+The **Story List** component is responsible for fetching and displaying a list of top stories from Hacker News. Each story includes its title, score, author, and a link to view the details. The component refreshes the data periodically to ensure the list stays up-to-date.
 
 ```ts
-app.component("story-detail", async function* (component: { storyId: number }) {
-  let story: Story | null = null;
+component(
+  "story-list",
+  async function* (component) {
+    let stories = await fetchTopStories();
 
-  const fetchStory = async () => {
-    story = await fetch(
-      `https://hacker-news.firebaseio.com/v0/item/${component.storyId}.json`
-    ).then((r) => r.json());
-    component.render();
-  };
-
-  fetchStory();
-
-  while (true) {
-    if (!story) {
-      yield <div>Loading story...</div>;
-    } else {
+    while (true) {
       yield (
-        <div class="story-detail">
-          <h1>
-            <a href={story.url}>{story.title}</a>
-          </h1>
-          <div class="meta">
-            {story.score} points by {story.by}
-          </div>
-          <div class="comments">
-            {story.kids?.map((id) => (
-              <comment-item commentId={id} />
-            ))}
-          </div>
+        <div>
+          {stories.map((story) => (
+            <div>
+              <a href="#" onclick={() => bloom.goto(`/story/${story.id}`)}>
+                {story.title}
+              </a>
+              <p>
+                {story.score} points by <user-link username={story.by} />
+              </p>
+            </div>
+          ))}
         </div>
       );
     }
-  }
-});
+  },
+  {}
+);
+```
+
+#### Comment Item
+
+The **Comment Item** component represents a single comment in the comment thread. It fetches the comment data by its ID and displays the author and text of the comment. If the comment has replies (nested comments), they are displayed recursively using the same component.
+
+```ts
+component(
+  "comment-item",
+  async function* (component) {
+    let commentData = await fetchItem<CommentData>(component.commentid);
+
+    while (true) {
+      yield (
+        <div>
+          <p>{commentData.by}</p>
+          <p>{commentData.text}</p>
+          {commentData.kids &&
+            commentData.kids.map((kid) => <comment-item commentid={kid} />)}
+        </div>
+      );
+    }
+  },
+  { commentid: 0 }
+);
+```
+
+#### User Profile
+
+The **User Profile** component displays information about a specific user, including their karma, account creation date, and a list of their recent submissions. It fetches the user data by username and updates dynamically.
+
+```ts
+component(
+  "user-profile",
+  async function* (component) {
+    const userData = await fetchUser(component.username);
+
+    while (true) {
+      yield (
+        <div>
+          <h1>{userData.id}</h1>
+          <p>Karma: {userData.karma}</p>
+          <p>About: {userData.about}</p>
+        </div>
+      );
+    }
+  },
+  { username: "" }
+);
 ```
 
 ### Routing
 
-Finally, let's wire everything up with routes:
+Define routes for your application:
 
 ```ts
-// Home page
-app.page("/", async function* () {
+const bloom = new Bloom("app");
+
+bloom.page("/", async function* () {
   while (true) {
     yield <story-list />;
   }
 });
 
-// Story detail page
-app.page("/story/:id", async function* (params) {
-  while (true) {
-    yield <story-detail storyId={parseInt(params.id, 10)} />;
-  }
+bloom.page("/story/:id", async function* (params) {
+  yield <story-detail storyid={parseInt(params.id, 10)} />;
 });
 
-// Start the app
+bloom.page("/user/:id", async function* (params) {
+  yield <user-profile username={params.id} />;
+});
+
 bloom.goto("/");
 ```
-
-No complex state management, no effect hooks, no dependency arrays - just simple JavaScript generators handling the flow of data to views.
 
 ## License
 

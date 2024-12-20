@@ -59,7 +59,7 @@ export function component<
     extends (options.extends ?? HTMLElement)
     implements BloomComponent
   {
-    #iterator: AsyncGenerator<webjsx.VNode, void, void>;
+    #iterator: AsyncGenerator<webjsx.VNode, webjsx.VNode | void, void>;
     #root: ShadowRoot | HTMLElement;
     #resolveUpdate: (() => void) | null = null;
     renderPromise: Promise<void> | null = null;
@@ -164,16 +164,21 @@ export function component<
         this.#resolveUpdate = null;
 
         const { value: vdom, done } = await this.#iterator.next();
-        if (done) break;
+        if (done) {
+          if (vdom) {
+            webjsx.applyDiff(this.#root, vdom);
+          }
+          break;
+        } else {
+          // if renderPromise is not null, someone else might have triggered another render.
+          this.renderPromise =
+            this.renderPromise ??
+            new Promise<void>((resolve) => {
+              this.#resolveUpdate = resolve;
+            });
 
-        // if renderPromise is not null, someone else might have triggered another render.
-        this.renderPromise =
-          this.renderPromise ??
-          new Promise<void>((resolve) => {
-            this.#resolveUpdate = resolve;
-          });
-
-        webjsx.applyDiff(this.#root, vdom);
+          webjsx.applyDiff(this.#root, vdom);
+        }
       }
     }
 
