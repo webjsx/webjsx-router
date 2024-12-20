@@ -33,12 +33,12 @@ Advanced instructions can be found on [WebJSX](https://webjsx.org).
 
 A component in Bloom is defined with the `component` function, which takes three parameters: the component's name, an asynchronous generator function (or a regular function), and an optional default properties object. The generator function is where the rendering logic is implemented, yielding views dynamically as the component's state changes. The optional properties object can be used to initialize default settings for the component.
 
-Here’s an example of a counter component:
+Here’s an example of a click-counter component:
 
 ```ts
 import { component } from "bloom-router";
 
-component("example-component", async function* (component) {
+component("click-counter", async function* (component) {
   let count = 0;
 
   while (true) {
