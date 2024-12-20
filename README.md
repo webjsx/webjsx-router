@@ -79,8 +79,8 @@ Properties are defined as part of the component declaration, with default values
 ```ts
 component(
   "custom-title",
-  function (component: HTMLElement & { title: string }) {
-    return <h2>{component.title}</h2>;
+  async function* (component: HTMLElement & { title: string }) {
+    yield <h2>{component.title}</h2>;
   },
   { title: "Default Title" }
 );
