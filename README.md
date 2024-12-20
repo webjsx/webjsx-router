@@ -88,11 +88,11 @@ component(
 
 This component displays a heading using the `title` property. If no title is provided, the default value "Default Title" is used. For a Web Component to have a prop or an attribute, it must declare them in this manner with default values.
 
+If you want to jump right into the code, you can edit the [HN example on StackBlitz](https://stackblitz.com/edit/bloom-hn).
+
 ## Building an HN Clone
 
 Let's build a Hacker News (HN) clone using Bloom. This example demonstrates how to create a full-featured web application with components, routing, data fetching, and state management.
-
-If you want to jump right into the code, you can edit the [HN example on StackBlitz](https://stackblitz.com/edit/bloom-hn).
 
 ### Story List - The Home Page
 
