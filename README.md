@@ -4,18 +4,11 @@ Bloom enables you to build efficient, lightweight web applications using Web Com
 
 ## Core Concepts
 
-Bloom simplifies web application development by leveraging JavaScript’s native features to manage UI rendering. Components are defined as asynchronous generator functions, and routing is handled declaratively with `bloom-router`.
+Bloom simplifies web application development by leveraging JavaScript’s native features to manage UI rendering. Components are defined as asynchronous generator functions yielding JSX.
 
-### Key Features
-
-1. **Web Components**: Components are generated as Web Components, which you can re-use anywhere on the page natively or from any framework.
-2. **Asynchronous Generators**: Each component is an asynchronous generator, yielding dynamic views and updating seamlessly with state changes.
+1. **Web Components**: All components are Web Components, which you can re-use natively or from any framework.
+2. **Asynchronous Generators**: Rendering is done with an asynchronous generator, yielding dynamic JSX views as the state changes.
 3. **Declarative Routing**: Define routes and associate them with components using the `bloom-router` API.
-
-### Example Workflow
-
-- **Generator Workflow**: Components yield a view, wait for events (e.g., user interaction, data updates), and then yield updated views.
-- **Routing**: Pages and navigation are managed with `bloom-router`, ensuring smooth transitions.
 
 ## Installation
 
