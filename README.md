@@ -63,8 +63,6 @@ Let's build a Hacker News (HN) clone using Bloom. This example demonstrates how 
 
 The home page displays a curated list of top stories from Hacker News. When the component mounts, it fetches the IDs of top stories from the HN API, then retrieves detailed data for the top 20 stories. Each story is displayed with its title, score, author link, and comment count. The component handles loading states and provides clear feedback to users while data is being fetched.
 
-src/components/story-list.ts
-
 ```ts
 component(
   "story-list",
@@ -116,8 +114,6 @@ component(
 ### Story Detail Page
 
 When a user clicks on a story title, they're taken to the story detail page. This component fetches and displays comprehensive information about a single story, including its title (linked to the original URL), score, author, and the full comment thread. It provides a back navigation link and gracefully handles cases where the story might not be found.
-
-src/components/story-detail.ts
 
 ```ts
 component(
@@ -182,8 +178,6 @@ The comment system consists of two main components that work together to display
 
 This component manages the top-level structure of a story's comment thread. It fetches the list of comments for a given story and renders them as a cohesive discussion thread. If there are no comments, it displays an appropriate message.
 
-src/components/comment-thread.ts
-
 ```ts
 component(
   "comment-thread",
@@ -224,8 +218,6 @@ component(
 ### Comment Item Component
 
 This component handles the display of individual comments, including any nested replies. It supports HTML content in comment text and implements proper indentation for nested comments. The component gracefully handles deleted comments and missing content.
-
-src/components/comment-item.ts
 
 ```ts
 component(
@@ -282,8 +274,6 @@ component(
 ### User Profile Page
 
 The user profile page provides detailed information about a user's presence on the platform. It displays the user's karma score, account creation date, about section (if available), and a list of their recent submissions. The component implements type guards to ensure data integrity and handles missing or invalid user data appropriately.
-
-src/components/user-profile.ts
 
 ```ts
 component(
@@ -380,8 +370,6 @@ component(
 
 A utility component used throughout the application to create consistent user profile links. It takes a username prop and renders a clickable link that navigates to that user's profile page.
 
-src/components/user-link.ts
-
 ```ts
 component(
   "user-link",
@@ -403,8 +391,6 @@ component(
 ###Application Types
 
 The application uses TypeScript interfaces to ensure type safety across components:
-
-src/types.ts
 
 ```ts
 type Story = {
@@ -436,8 +422,6 @@ type UserData = {
 ### Routing Setup
 
 Finally, we configure the routes for our application:
-
-src/index.ts
 
 ```ts
 const bloom = new Bloom("app");
