@@ -33,8 +33,6 @@ Advanced instructions can be found on [WebJSX](https://webjsx.org).
 
 ### Declaring Components
 
-### Declaring Components
-
 In Bloom, creating a component is both simple and powerful, leveraging the `component` function to define reusable UI elements that seamlessly integrate into the application. Components in Bloom are fundamentally Web Components, meaning they are native to the browser and framework-agnostic. This approach ensures that they can be reused across different projects or frameworks without additional configuration.
 
 A Bloom component is declared using the `component` function, which takes the component's name as the first parameter and an asynchronous generator function as the second. This generator function defines the rendering logic and dynamically yields views as the component's state changes. Additionally, you can pass a default set of properties as the third argument, allowing you to initialize the component's configuration.
