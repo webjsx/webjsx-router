@@ -1,6 +1,6 @@
-# Bloom: An Experimental UI Framework
+# Bloom: An experiment in UI state management
 
-Bloom is an experimental approach to building applications using Web Components and Asynchronous Generators, powered by `bloom-router` and `webjsx`.
+Bloom is a minimal experimental approach to managing front-end state using Web Components and Asynchronous Generators. Under the hood, it uses `bloom-router` and `webjsx`.
 
 1. **Web Components**: All components are Web Components, which you can re-use natively or from any framework.
 2. **Asynchronous Generators**: Rendering is done with an asynchronous generator, yielding dynamic JSX views as the state changes.
