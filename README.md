@@ -2,10 +2,6 @@
 
 Bloom is an experimental approach to building applications using Web Components and Asynchronous Generators, powered by `bloom-router` and `webjsx`.
 
-## Core Concepts
-
-Bloom simplifies web application development by leveraging JavaScript’s native features to manage UI rendering. Components are defined as asynchronous generator functions yielding JSX.
-
 1. **Web Components**: All components are Web Components, which you can re-use natively or from any framework.
 2. **Asynchronous Generators**: Rendering is done with an asynchronous generator, yielding dynamic JSX views as the state changes.
 3. **Declarative Routing**: Define routes and associate them with components using the `bloom-router` API.
