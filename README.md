@@ -74,6 +74,8 @@ component("example-component", async function* (component) {
 
 Let's build a Hacker News (HN) clone using Bloom. This example demonstrates how to create a full-featured web application with components, routing, data fetching, and state management.
 
+If you want to jump right into the code, you can edit the [HN example on StackBlitz](https://stackblitz.com/edit/bloom-hn).
+
 ### Story List - The Home Page
 
 The home page displays a curated list of top stories from Hacker News. When the component mounts, it fetches the IDs of top stories from the HN API, then retrieves detailed data for the top 20 stories. Each story is displayed with its title, score, author link, and comment count. The component handles loading states and provides clear feedback to users while data is being fetched.
