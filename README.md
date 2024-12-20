@@ -29,15 +29,11 @@ Ensure your `tsconfig.json` is set up to handle JSX.
 
 Advanced instructions can be found on [WebJSX](https://webjsx.org).
 
-## Component API
+## Declaring Components
 
-### Declaring Components
+A component in Bloom is defined with the `component` function, which takes three parameters: the component's name, an asynchronous generator function (or a regular function), and an optional default properties object. The generator function is where the rendering logic is implemented, yielding views dynamically as the component's state changes. The optional properties object can be used to initialize default settings for the component.
 
-In Bloom, creating a component is both simple and powerful, leveraging the `component` function to define reusable UI elements that seamlessly integrate into the application. Components in Bloom are fundamentally Web Components, meaning they are native to the browser and framework-agnostic. This approach ensures that they can be reused across different projects or frameworks without additional configuration.
-
-A Bloom component is declared using the `component` function, which takes the component's name as the first parameter and an asynchronous generator function as the second. This generator function defines the rendering logic and dynamically yields views as the component's state changes. Additionally, you can pass a default set of properties as the third argument, allowing you to initialize the component's configuration.
-
-For instance, the following example demonstrates a simple counter component:
+Here’s an example of a counter component:
 
 ```ts
 import { component } from "bloom-router";
@@ -63,12 +59,12 @@ component("example-component", async function* (component) {
 });
 ```
 
-This example showcases the dynamic nature of Bloom components. Here, the `while (true)` loop enables continuous rendering, and the `yield` keyword allows the component to produce a new view whenever the state changes. The `component.render()` method is explicitly called to trigger a re-render, ensuring that the view updates as the state (in this case, `count`) changes. This approach is particularly useful for scenarios where the state evolves frequently or asynchronously.
+In this example, the `while (true)` loop enables continuous rendering, with the `yield` keyword producing new views whenever the state changes. The `component.render()` method is called to trigger these updates, ensuring that the UI reflects the latest state (in this case, the current count).
 
-However, you’re not limited to `yield`. In cases where a component’s output does not need to dynamically update, you can return a static JSX view instead of using the generator style. This is useful for simpler components where the content is fixed or reaches a final state. For example:
+In cases where a component’s output does not need to update dynamically, you can return a static JSX view right away. This is ideal for simpler components where the content is either fixed or determined only once. For example:
 
 ```ts
-component("static-component", function (component) {
+component("static-component", async function* (component) {
   return (
     <div>
       <h1>Welcome to Bloom!</h1>
@@ -78,22 +74,19 @@ component("static-component", function (component) {
 });
 ```
 
-By returning a JSX element directly, the component is rendered once, and there’s no need for an ongoing loop or generator functionality. This pattern can simplify your components when state management or frequent updates aren’t required, improving readability and performance in such scenarios.
-
-Another significant feature of Bloom components is their ability to accept and manage properties. Properties can be defined as part of the component declaration, allowing you to create customizable and reusable components. For instance, consider the following component that takes a `title` property:
+Properties are defined as part of the component declaration, with default values specified in the optional third parameter. Here is an example:
 
 ```ts
-component("custom-title", function (component: HTMLElement & { title: string }) {
-  return (
-    <h2>{component.title}</h2>
-  );
-}, { title: "Default Title" });
+component(
+  "custom-title",
+  function (component: HTMLElement & { title: string }) {
+    return <h2>{component.title}</h2>;
+  },
+  { title: "Default Title" }
+);
 ```
 
-In this example, the component renders a heading using the `title` property. The third argument provides a default value for `title`, ensuring the component behaves predictably even if no explicit property value is set.
-
-Bloom's declarative approach to component creation allows you to mix dynamic and static behaviors effortlessly. Whether you’re building a highly interactive component with asynchronous state changes or a static, simple display, Bloom’s API gives you the flexibility to tailor your implementation to the needs of your application. This versatility ensures your components remain intuitive, reusable, and maintainable, regardless of complexity.
-
+This component displays a heading using the `title` property. If no title is provided, the default value "Default Title" is used. For a Web Component to have a prop or an attribute, it must declare them in this manner with default values.
 
 ## Building an HN Clone
 
@@ -212,13 +205,9 @@ component(
 );
 ```
 
-### Comment System
-
-The comment system consists of two main components that work together to display threaded discussions:
-
 ### Comment Thread Component
 
-This component manages the top-level structure of a story's comment thread. It fetches the list of comments for a given story and renders them as a cohesive discussion thread. If there are no comments, it displays an appropriate message.
+This component manages the top-level structure of a story's comment thread. It fetches the list of comments for a given story and renders them as a discussion thread. If there are no comments, it displays an appropriate message.
 
 ```ts
 component(
@@ -259,7 +248,7 @@ component(
 
 ### Comment Item Component
 
-This component handles the display of individual comments, including any nested replies. It supports HTML content in comment text and implements proper indentation for nested comments. The component gracefully handles deleted comments and missing content.
+This component handles the display of individual comments, including any nested replies. It supports text comments and implements indentation for nested comments. The component gracefully handles deleted comments and missing content.
 
 ```ts
 component(
@@ -315,7 +304,7 @@ component(
 
 ### User Profile Page
 
-The user profile page provides detailed information about a user's presence on the platform. It displays the user's karma score, account creation date, about section (if available), and a list of their recent submissions. The component implements type guards to ensure data integrity and handles missing or invalid user data appropriately.
+The user profile page displays the user's karma score, account creation date, about section (if available), and a list of their recent submissions. The component implements type guards to ensure data integrity and handles missing or invalid user data appropriately.
 
 ```ts
 component(
@@ -422,13 +411,13 @@ component(
       <a href="#" onclick={() => bloom.goto(`/user/${component.username}`)}>
         {component.username}
       </a>
-    );    
+    );
   },
   { username: "" }
 );
 ```
 
-###Application Types
+### Application Types
 
 The application uses TypeScript interfaces to ensure type safety across components:
 
@@ -466,16 +455,16 @@ Finally, we configure the routes for our application:
 ```ts
 const bloom = new Bloom("app");
 
-bloom.page('/', async function* () {
+bloom.page("/", async function* () {
   return <story-list />;
 });
 
-bloom.page('/story/:id', async function* (params) {
+bloom.page("/story/:id", async function* (params) {
   const storyId = parseInt(params.id, 10);
   return <story-detail storyid={storyId} />;
 });
 
-bloom.page('/user/:id', async function* (params) {
+bloom.page("/user/:id", async function* (params) {
   return <user-profile username={params.id} />;
 });
 
