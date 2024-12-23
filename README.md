@@ -6,6 +6,9 @@ Bloom is an experimental approach to managing front-end state using Web Componen
 2. **Asynchronous Generators**: Rendering is done with an asynchronous generator, yielding dynamic JSX views as the state changes.
 3. **Declarative Routing**: Define routes and associate them with components using the `bloom-router` API.
 
+If you want to dive right into code, here's an [HN Homepage example](https://stackblitz.com/edit/bloom-hn) on StackBlitz.
+This article might also be interesting: https://webjsx.org/bloom/
+
 ## Installation
 
 To use Bloom in your project:
@@ -99,7 +102,6 @@ Let's build a Hacker News (HN) clone using Bloom. This example demonstrates how 
 The home page displays a curated list of top stories from Hacker News. When the component mounts, it fetches the IDs of top stories from the HN API, then retrieves detailed data for the top 20 stories. Each story is displayed with its title, score, author link, and comment count. The component handles loading states and provides clear feedback to users while data is being fetched.
 
 ```ts
-
 component(
   "story-list",
   async function* (component: HTMLElement & BloomComponent) {
@@ -137,9 +139,6 @@ component(
               {stories.slice(0, 10).map((story: Story, index: number) => (
                 <div class="story-list-item">
                   <span class="rank">{index + 1}.</span>
-                  <div style="display: inline-block">
-                    <div class="vote-arrow" title="upvote"></div>
-                  </div>
                   <span>
                     <a class="title-link" href="#" onclick={() => {}}>
                       {story.title}
