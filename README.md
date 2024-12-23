@@ -6,7 +6,7 @@ Bloom is an experimental approach to managing front-end state using Web Componen
 2. **Asynchronous Generators**: Rendering is done with an asynchronous generator, yielding dynamic JSX views as the state changes.
 3. **Declarative Routing**: Define routes and associate them with components using the `bloom-router` API.
 
-If you want to dive right into code, here's an [HN Homepage example](https://stackblitz.com/edit/bloom-hn) on StackBlitz.
+If you want to dive right into code, here's an [HN Homepage example](https://stackblitz.com/edit/bloom-hn) on StackBlitz. <br />
 This article might also be interesting: https://webjsx.org/bloom/
 
 ## Installation
