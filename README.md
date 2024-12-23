@@ -99,10 +99,11 @@ Let's build a Hacker News (HN) clone using Bloom. This example demonstrates how 
 The home page displays a curated list of top stories from Hacker News. When the component mounts, it fetches the IDs of top stories from the HN API, then retrieves detailed data for the top 20 stories. Each story is displayed with its title, score, author link, and comment count. The component handles loading states and provides clear feedback to users while data is being fetched.
 
 ```ts
+
 component(
   "story-list",
   async function* (component: HTMLElement & BloomComponent) {
-    let stories: Story[] | null = null;
+    let stories = null as Story[] | null;
 
     const fetchTopStories = async (limit = 30) => {
       const topIds = await fetch(
@@ -129,7 +130,7 @@ component(
           </div>
         );
       } else {
-        return (
+        yield (
           <div>
             <hn-header />
             <div class="story-list">
@@ -140,13 +141,13 @@ component(
                     <div class="vote-arrow" title="upvote"></div>
                   </div>
                   <span>
-                    <a class="title-link" href="#" onclick={() => bloom.goto(`/story/${story.id}`)}>
+                    <a class="title-link" href="#" onclick={() => {}}>
                       {story.title}
                     </a>
                     {story.url && (
                       <span class="meta">
                         {" "}
-
+                        <a
                           href={story.url}
                           class="host"
                           target="_blank"
@@ -159,7 +160,7 @@ component(
                   </span>
                   <div class="meta">
                     {story.score} points by <user-link username={story.by} />{" "}
-                    <a href="#" onclick={() => bloom.goto(`/story/${story.id}`)}>
+                    <a href="#" onclick={() => {}}>
                       {story.descendants || 0} comments
                     </a>
                   </div>
