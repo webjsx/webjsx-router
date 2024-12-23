@@ -104,40 +104,68 @@ component(
   async function* (component: HTMLElement & BloomComponent) {
     let stories: Story[] | null = null;
 
-    const fetchTopStories = async (limit = 20): Promise<Story[]> => {
+    const fetchTopStories = async (limit = 30) => {
       const topIds = await fetch(
         "https://hacker-news.firebaseio.com/v0/topstories.json"
       ).then((res) => res.json());
       const sliced = topIds.slice(0, limit);
-      const stories = await Promise.all(
+      stories = await Promise.all(
         sliced.map((id: number) =>
           fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(
             (r) => r.json()
           )
         )
       );
-      return stories as Story[];
+      component.render();
     };
 
-    stories = await fetchTopStories();
+    fetchTopStories();
 
     while (true) {
-      if (!stories) {
-        yield <div>Loading top stories...</div>;
+      if (stories === null) {
+        yield (
+          <div style="padding: 2em; background: gray; border-radius: 8px">
+            Loading top stories...
+          </div>
+        );
       } else {
         return (
           <div>
-            {stories.map((story: Story) => (
-              <div class="story-list-item">
-                <a href="#" onclick={() => bloom.goto(`/story/${story.id}`)}>
-                  {story.title}
-                </a>
-                <div class="meta">
-                  {story.score} points by <user-link username={story.by} /> |{" "}
-                  {story.descendants || 0} comments
+            <hn-header />
+            <div class="story-list">
+              {stories.slice(0, 10).map((story: Story, index: number) => (
+                <div class="story-list-item">
+                  <span class="rank">{index + 1}.</span>
+                  <div style="display: inline-block">
+                    <div class="vote-arrow" title="upvote"></div>
+                  </div>
+                  <span>
+                    <a class="title-link" href="#" onclick={() => bloom.goto(`/story/${story.id}`)}>
+                      {story.title}
+                    </a>
+                    {story.url && (
+                      <span class="meta">
+                        {" "}
+
+                          href={story.url}
+                          class="host"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          ({new URL(story.url).hostname.replace("www.", "")})
+                        </a>
+                      </span>
+                    )}
+                  </span>
+                  <div class="meta">
+                    {story.score} points by <user-link username={story.by} />{" "}
+                    <a href="#" onclick={() => bloom.goto(`/story/${story.id}`)}>
+                      {story.descendants || 0} comments
+                    </a>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         );
       }
@@ -414,6 +442,59 @@ component(
     );
   },
   { username: "" }
+);
+```
+
+### Header Component
+
+The header component implements the classic Hacker News navigation bar, including the Y Combinator logo and navigation links. This component provides consistent navigation across all pages of the application.
+
+```ts
+component(
+  "hn-header",
+  async function* (component: HTMLElement & BloomComponent) {
+    while (true) {
+      yield (
+        <div class="hn-header">
+          <div class="hn-header-content">
+            <a href="#" class="hn-logo">
+              Y
+            </a>
+            <a href="#" class="hn-header-text">
+              <b>Hacker News</b>
+            </a>
+            <a href="#" class="hn-header-link">
+              new
+            </a>
+            <span class="hn-header-separator">|</span>
+            <a href="#" class="hn-header-link">
+              past
+            </a>
+            <span class="hn-header-separator">|</span>
+            <a href="#" class="hn-header-link">
+              comments
+            </a>
+            <span class="hn-header-separator">|</span>
+            <a href="#" class="hn-header-link">
+              ask
+            </a>
+            <span class="hn-header-separator">|</span>
+            <a href="#" class="hn-header-link">
+              show
+            </a>
+            <span class="hn-header-separator">|</span>
+            <a href="#" class="hn-header-link">
+              jobs
+            </a>
+            <span class="hn-header-separator">|</span>
+            <a href="#" class="hn-header-link">
+              submit
+            </a>
+          </div>
+        </div>
+      );
+    }
+  }
 );
 ```
 
