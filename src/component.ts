@@ -42,7 +42,7 @@ export function component<
   name: string,
   generator: ComponentGenerator<TProps>,
   defaultProps: TProps = {} as TProps,
-  options: ComponentOptions = {}
+  options: ComponentOptions<TProps> = {}
 ): void {
   const observedProps = new Set<string>();
   const nonObservedProps = new Set<string>();
@@ -118,12 +118,16 @@ export function component<
     }
 
     async connectedCallback() {
-      options.onConnected?.(this);
+      options.onConnected?.(
+        this as unknown as HTMLElement & BloomComponent & TProps
+      );
       this.render();
     }
 
     async disconnectedCallback() {
-      options.onDisconnected?.(this);
+      options.onDisconnected?.(
+        this as unknown as HTMLElement & BloomComponent & TProps
+      );
     }
 
     attributeChangedCallback(

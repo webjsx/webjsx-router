@@ -16,11 +16,11 @@ export type ComponentGenerator<TProps> = (
   component: HTMLElement & BloomComponent & TProps
 ) => AsyncGenerator<webjsx.VNode, webjsx.VNode | void, void>;
 
-export interface ComponentOptions {
+export interface ComponentOptions<TProps> {
   shadow?: "open" | "closed";
   styles?: string;
   adoptedStyleSheets?: CSSStyleSheet[];
-  onConnected?: (component: HTMLElement & BloomComponent) => void;
-  onDisconnected?: (component: HTMLElement & BloomComponent) => void;
+  onConnected?: (component: HTMLElement & BloomComponent & TProps) => void;
+  onDisconnected?: (component: HTMLElement & BloomComponent & TProps) => void;
   extends?: typeof HTMLElement;
 }
