@@ -93,6 +93,37 @@ This component displays a heading using the `title` property. If no title is pro
 
 If you want to jump right into the code, you can edit the [HN example on StackBlitz](https://stackblitz.com/edit/bloom-hn).
 
+## Lifecycle Methods
+
+Components in Bloom support lifecycle methods through the ComponentOptions parameter:
+
+```ts
+component(
+  "lifecycle-example",
+  async function* (component) {
+    yield <div>Content</div>;
+  },
+  {}, // default props
+  {
+    onConnected: (component) => {
+      // Called when component is added to DOM
+      console.log("Component connected");
+    },
+    onDisconnected: (component) => {
+      // Called when component is removed from DOM
+      console.log("Component disconnected");
+    },
+  }
+);
+```
+
+The lifecycle methods are:
+
+- `onConnected`: Called when the component is added to the DOM. Use this to initialize resources, start data fetching, or set up subscriptions.
+- `onDisconnected`: Called when the component is removed from the DOM. Use this to clean up resources, cancel pending requests, or remove event listeners.
+
+These methods help manage side effects and resources throughout the component's lifecycle.
+
 ## Building an HN Clone
 
 Let's build a Hacker News (HN) clone using Bloom. This example demonstrates how to create a full-featured web application with components, routing, data fetching, and state management.

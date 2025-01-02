@@ -26,9 +26,6 @@ export function setupJSDOM(
   // Assign JSDOM globals to the Node.js global scope
   (globalThis as any).window = window;
   (globalThis as any).document = window.document;
-  (globalThis as any).navigator = {
-    userAgent: "node.js",
-  };
   globalThis.Element = window.Element;
   globalThis.HTMLElement = window.HTMLElement;
   globalThis.Node = window.Node;
