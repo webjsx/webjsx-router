@@ -5,7 +5,7 @@ export interface Route {
   pageGenerator: PageGenerator;
 }
 
-export class Router {
+export class RouterImpl {
   private routes: Route[] = [];
 
   addRoute(pattern: string, pageGenerator: PageGenerator): void {

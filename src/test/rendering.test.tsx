@@ -1,18 +1,17 @@
 import { expect } from "chai";
-import { Bloom, component } from "../index.js";
+import { Router } from "../index.js";
 import "./setup.js";
 import { setupJSDOM } from "./setup.js";
-import * as webjsx from "webjsx";
 
-describe("Bloom Rendering", () => {
-  let bloom: Bloom;
+describe("Magic Loop Router Rendering", () => {
+  let router: Router;
 
   beforeEach(() => {
     setupJSDOM();
     const appElement = document.createElement("div");
     appElement.id = "app";
     document.body.appendChild(appElement);
-    bloom = new Bloom(appElement);
+    router = new Router(appElement);
   });
 
   afterEach(() => {
@@ -20,24 +19,24 @@ describe("Bloom Rendering", () => {
   });
 
   it("should render the initial page content", async () => {
-    bloom.page("/home", async function* () {
+    router.page("/home", async function* () {
       yield <div id="home">Home Page</div>;
     });
 
-    await bloom.goto("/home");
+    await router.goto("/home");
 
     const homeElement = document.getElementById("home");
     expect(homeElement).to.not.be.null;
     expect(homeElement!.textContent).to.equal("Home Page");
   });
 
-  it("should trigger re-render on bloom.render()", async () => {
-    bloom.page("/home", async function* () {
+  it("should trigger re-render on router.render()", async () => {
+    router.page("/home", async function* () {
       let count = 0;
 
       function increment() {
         count++;
-        bloom.render();
+        router.render();
       }
 
       while (true) {
@@ -52,7 +51,7 @@ describe("Bloom Rendering", () => {
       }
     });
 
-    await bloom.goto("/home");
+    await router.goto("/home");
 
     const countElement = document.getElementById("count");
     const button = document.getElementById("increment") as HTMLElement;
@@ -66,31 +65,31 @@ describe("Bloom Rendering", () => {
   });
 
   it("should render different pages when navigating between routes", async () => {
-    bloom.page("/home", async function* () {
+    router.page("/home", async function* () {
       yield <div id="home">Home Page</div>;
     });
 
-    bloom.page("/about", async function* () {
+    router.page("/about", async function* () {
       yield <div id="about">About Page</div>;
     });
 
-    await bloom.goto("/home");
+    await router.goto("/home");
     let homeElement = document.getElementById("home");
     expect(homeElement).to.not.be.null;
     expect(homeElement!.textContent).to.equal("Home Page");
 
-    await bloom.goto("/about");
+    await router.goto("/about");
     let aboutElement = document.getElementById("about");
     expect(aboutElement).to.not.be.null;
     expect(aboutElement!.textContent).to.equal("About Page");
   });
 
   it("should handle dynamic route rendering", async () => {
-    bloom.page("/city/:location", async function* (params) {
+    router.page("/city/:location", async function* (params) {
       yield <div id="city">Weather in {params.location}</div>;
     });
 
-    await bloom.goto("/city/London");
+    await router.goto("/city/London");
     const cityElement = document.getElementById("city");
 
     expect(cityElement).to.not.be.null;

@@ -1,11 +1,9 @@
 import * as webjsx from "webjsx";
-import { Router } from "./router.js";
+import { RouterImpl } from "./router.js";
 import { PageGenerator } from "./types.js";
 
-export { component } from "./component.js";
-
-export class Bloom {
-  private router: Router = new Router();
+export class Router {
+  private router: RouterImpl = new RouterImpl();
   private currentIterator: AsyncGenerator<
     webjsx.VNode,
     webjsx.VNode | void,

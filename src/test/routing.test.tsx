@@ -1,18 +1,17 @@
 import { expect } from "chai";
-import { Bloom, component } from "../index.js";
+import { Router } from "../index.js";
 import "./setup.js";
 import { setupJSDOM } from "./setup.js";
-import * as webjsx from "webjsx";
 
-describe("Bloom Routing", () => {
-  let bloom: Bloom;
+describe("Magic Loop Routing", () => {
+  let router: Router;
 
   beforeEach(() => {
     setupJSDOM();
     const appElement = document.createElement("div");
     appElement.id = "app";
     document.body.appendChild(appElement);
-    bloom = new Bloom(appElement);
+    router = new Router(appElement);
   });
 
   afterEach(() => {
@@ -20,41 +19,41 @@ describe("Bloom Routing", () => {
   });
 
   it("should register a simple route", () => {
-    bloom.page("/home", async function* () {
+    router.page("/home", async function* () {
       yield <div />;
     });
 
     // Access router's routes through the private field
-    expect((bloom as any).router.routes).to.have.length(1);
-    expect((bloom as any).router.routes[0].pattern).to.equal("/home");
+    expect((router as any).router.routes).to.have.length(1);
+    expect((router as any).router.routes[0].pattern).to.equal("/home");
   });
 
   it("should match a route with no params", async () => {
-    bloom.page("/about", async function* () {
+    router.page("/about", async function* () {
       yield <div />;
     });
 
-    const match = (bloom as any).router.matchRoute("/about");
+    const match = (router as any).router.matchRoute("/about");
     expect(match).to.not.be.null;
     expect(match!.params).to.deep.equal({});
   });
 
   it("should match a route with dynamic params", async () => {
-    bloom.page("/city/:location", async function* () {
+    router.page("/city/:location", async function* () {
       yield <div />;
     });
 
-    const match = (bloom as any).router.matchRoute("/city/NewYork");
+    const match = (router as any).router.matchRoute("/city/NewYork");
     expect(match).to.not.be.null;
     expect(match!.params).to.deep.equal({ location: "NewYork" });
   });
 
   it("should not match a non-existent route", async () => {
-    bloom.page("/home", async function* () {
+    router.page("/home", async function* () {
       yield <div />;
     });
 
-    const match = (bloom as any).router.matchRoute("/nonexistent");
+    const match = (router as any).router.matchRoute("/nonexistent");
     expect(match).to.be.null;
   });
 });

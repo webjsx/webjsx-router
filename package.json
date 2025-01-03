@@ -1,6 +1,6 @@
 {
-  "name": "bloom-router",
-  "version": "0.0.21",
+  "name": "magic-loop-router",
+  "version": "0.0.22",
   "public": true,
   "main": "./dist/index.js",
   "type": "module",
