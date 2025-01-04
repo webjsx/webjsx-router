@@ -1,63 +1,101 @@
-# Magic Loop Router
+# Webjsx Router
 
-A lightweight router for web applications, designed to work seamlessly with Magic Loop and Web Components.
-For more information, see [Magic Loop](https://github.com/webjsx/magic-loop)
+A minimal, type-safe pattern matching router for webjsx with zero dependencies. Ideal for building web components with declarative routing.
 
 ## Installation
 
 ```bash
-npm install magic-loop-router
+npm install webjsx-router
 ```
+
+## Features
+
+- Lightweight and fast pattern matching
+- Full TypeScript support with type inference
+- URL parameter extraction
+- Query string parsing
+- Trailing slash handling
+- Chain multiple routes with fallbacks
+- No external dependencies
 
 ## Usage
 
-The router provides a simple API for declaring routes and handling navigation in your web application.
-
-### Basic Setup
+Use the `match` function directly in your render methods to handle different routes:
 
 ```ts
-import { Router } from "magic-loop-router";
+import { match } from "webjsx-router";
 
-// Initialize the router with the root element ID
-const router = new Router("app");
-
-// Define routes
-router.page("/", async function* () {
-  return <home-page />;
-});
-
-router.page("/user/:id", async function* (params) {
-  return <user-profile userid={params.id} />;
-});
-
-// Start the router
-router.goto("/");
+function render() {
+  return (
+    match("/users/:id", (params, query) => (
+      <user-details id={params.id} tab={query.tab} />
+    )) ||
+    match("/users", () => <user-list />) || <not-found />
+  );
+}
 ```
 
-### Route Parameters
+### URL Patterns
 
-Routes can include parameters, denoted by a colon prefix (`:`). These parameters are passed to your route handler:
+The router supports URL patterns with named parameters:
 
 ```ts
-router.page("/product/:id", async function* (params) {
-  return <product-detail productid={params.id} />;
+// Static routes
+match("/about", () => <about-page />);
+
+// Single parameter
+match("/users/:id", (params) => <user-details id={params.id} />);
+
+// Multiple parameters
+match("/org/:orgId/users/:userId", (params) => (
+  <org-user orgId={params.orgId} userId={params.userId} />
+));
+```
+
+### Query Parameters
+
+Query strings are automatically parsed and provided to your render function:
+
+```ts
+// URL: /search?q=test&sort=desc
+match("/search", (params, query) => {
+  query.q; // "test"
+  query.sort; // "desc"
+  return <search-results query={query.q} sort={query.sort} />;
 });
 ```
 
-### Navigation
+### Type Safety
 
-Use the `goto` method to programmatically navigate to different routes:
+The router provides full TypeScript support with automatic type inference:
 
 ```ts
-router.goto("/user/123");
+// Parameters are fully typed
+match("/users/:userId/posts/:postId", (params) => {
+  params.userId; // typed as string
+  params.postId; // typed as string
+  return <user-post {...params} />;
+});
+
+// Query parameters are typed as Record<string, string>
+match("/users", (params, query) => {
+  query.page; // typed as string | undefined
+  return <user-list page={query.page} />;
+});
 ```
 
-You can also use regular anchor tags with `onclick` handlers:
+### Route Chaining
+
+Chain multiple routes with the OR operator (`||`). The last route acts as a fallback:
 
 ```ts
-<a href="#" onclick={() => router.goto("/user/123")}>
-  View Profile
-</a>
+function render() {
+  return (
+    match("/users/:id", (params) => <user-details id={params.id} />) ||
+    match("/users", () => <user-list />) ||
+    match("/about", () => <about-page />) || <not-found /> // Fallback route
+  );
+}
 ```
 
 ## License

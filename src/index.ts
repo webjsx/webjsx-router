@@ -1,90 +1,134 @@
 import * as webjsx from "webjsx";
-import { RouterImpl } from "./router.js";
-import { PageGenerator } from "./types.js";
 
-export class Router {
-  private router: RouterImpl = new RouterImpl();
-  private currentIterator: AsyncGenerator<
-    webjsx.VNode,
-    webjsx.VNode | void,
-    void
-  > | null = null;
-  private updatePromise: Promise<void> | null = null;
-  private resolveUpdate: (() => void) | null = null;
-  private appContainer: HTMLElement;
+type ParamsFromPattern<T extends string> =
+  T extends `${string}:${infer Param}/${infer Rest}`
+    ? { [K in Param | keyof ParamsFromPattern<Rest>]: string }
+    : T extends `${string}:${infer Param}`
+    ? { [K in Param]: string }
+    : {};
 
-  constructor(elementOrId: string | HTMLElement) {
-    if (typeof elementOrId === "string") {
-      const el = document.getElementById(elementOrId);
-      if (!el) {
-        throw new Error(`Element with ID ${elementOrId} not found`);
-      }
-      this.appContainer = el;
-    } else {
-      this.appContainer = elementOrId;
-    }
-
-    window.addEventListener("popstate", () => {
-      this.handleNavigation(location.pathname + location.search);
+/**
+ * Converts URL pattern to regex and extracts parameter names
+ */
+function parsePattern(pattern: string): {
+  regex: RegExp;
+  paramNames: string[];
+} {
+  const paramNames: string[] = [];
+  const regexString = pattern
+    .replace(/\/$/, "") // Remove trailing slash
+    .replace(/:[^/]+/g, (match) => {
+      const paramName = match.slice(1);
+      paramNames.push(paramName);
+      return "([^/]+)";
     });
-  }
 
-  public page(pattern: string, pageGenerator: PageGenerator): void {
-    this.router.addRoute(pattern, pageGenerator);
-  }
+  return {
+    regex: new RegExp(`^${regexString}$`),
+    paramNames,
+  };
+}
 
-  public async goto(path: string): Promise<void> {
-    history.pushState(null, "", path);
-    await this.handleNavigation(path);
-    return (await this.updatePromise) as void;
-  }
+/**
+ * Extracts and decodes query parameters from URL
+ */
+function parseQueryString(search: string): Record<string, string> {
+  const params = new URLSearchParams(search);
+  const result: Record<string, string> = {};
 
-  private async handleNavigation(path: string) {
-    const [routePath, query] = path.split("?");
-    const match = this.router.matchRoute(routePath);
+  params.forEach((value, key) => {
+    result[decodeURIComponent(key)] = decodeURIComponent(value);
+  });
 
-    if (match) {
-      const { pageGenerator, params } = match;
-      this.currentIterator = pageGenerator(params, query || "");
-      this.resetUpdatePromise();
-      this.startRenderingLoop();
-    } else {
-      console.error(`No route matches the path: ${path}`);
+  return result;
+}
+
+/**
+ * Extracts parameters from URL based on pattern match
+ */
+function extractParams<Pattern extends string>(
+  pattern: Pattern,
+  match: RegExpMatchArray,
+  paramNames: string[]
+): ParamsFromPattern<Pattern> {
+  const params: Record<string, string> = {};
+
+  paramNames.forEach((name, index) => {
+    const value = match[index + 1];
+    if (value) {
+      params[name] = decodeURIComponent(value);
     }
-  }
+  });
 
-  private resetUpdatePromise(): void {
-    this.updatePromise = new Promise((resolve) => {
-      this.resolveUpdate = resolve;
-    });
-  }
+  return params as ParamsFromPattern<Pattern>;
+}
 
-  public render(): void {
-    if (this.resolveUpdate) {
-      this.resolveUpdate();
-    }
-  }
-
-  private async startRenderingLoop(): Promise<void> {
-    while (this.currentIterator) {
-      const { value: vdom, done } = await this.currentIterator.next();
-
-      if (done) {
-        if (vdom) {
-          webjsx.applyDiff(this.appContainer, vdom);
-        }
-        break;
-      } else {
-        webjsx.applyDiff(this.appContainer, vdom);
-
-        this.resolveUpdate!();
-
-        this.resetUpdatePromise();
-
-        await this.updatePromise;
-      }
-    }
+/**
+ * Normalizes a URL path by:
+ * 1. Removing multiple consecutive slashes
+ * 2. Preserving trailing slash if present
+ */
+function normalizePath(path: string): string {
+  try {
+    // Remove multiple consecutive slashes but preserve trailing
+    const hasTrailingSlash = path.endsWith("/");
+    const normalized = path.replace(/\/{2,}/g, "/").replace(/\/$/, "");
+    return hasTrailingSlash ? normalized + "/" : normalized;
+  } catch {
+    return "";
   }
 }
 
-export * from "./types.js";
+/**
+ * Matches current URL against a pattern and renders component if matched
+ */
+export function match<Pattern extends string>(
+  pattern: Pattern,
+  render: (
+    params: ParamsFromPattern<Pattern>,
+    query: Record<string, string>
+  ) => webjsx.VNode
+): webjsx.VNode | undefined {
+  try {
+    // Normalize paths - preserve trailing slash status
+    const currentPath = normalizePath(window.location.pathname);
+    const patternPath = normalizePath(pattern);
+    const currentSearch = window.location.search;
+
+    // Early return if trailing slash status doesn't match
+    if (currentPath.endsWith("/") !== patternPath.endsWith("/")) {
+      return undefined;
+    }
+
+    // Remove trailing slashes for regex matching
+    const pathForMatching = currentPath.replace(/\/$/, "");
+    const patternForMatching = patternPath.replace(/\/$/, "");
+
+    // Parse pattern and try to match
+    const { regex, paramNames } = parsePattern(patternForMatching);
+    const match = pathForMatching.match(regex);
+
+    if (!match) {
+      return undefined;
+    }
+
+    // Extract and decode parameters
+    const params = extractParams(pattern, match, paramNames);
+
+    // Parse query string
+    const query = parseQueryString(currentSearch);
+
+    // Render component with extracted data
+    try {
+      return render(params, query);
+    } catch (error) {
+      console.error("Error rendering route:", error);
+      return undefined;
+    }
+  } catch (error) {
+    console.error("Error matching route:", error);
+    return undefined;
+  }
+}
+
+export type { VNode } from "webjsx";
