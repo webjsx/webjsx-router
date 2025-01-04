@@ -79,6 +79,76 @@ function normalizePath(path: string): string {
   }
 }
 
+type RenderRoot = {
+  container: HTMLElement;
+  render: () => webjsx.VNode | undefined;
+};
+
+let rootElement: RenderRoot | undefined;
+
+/**
+ * Initializes the router with the root container and render function
+ */
+export function initRouter(
+  container: HTMLElement,
+  renderFn: () => webjsx.VNode | undefined
+) {
+  rootElement = {
+    container,
+    render: renderFn,
+  };
+
+  // Initial render
+  const vdom = renderFn();
+  if (vdom) {
+    webjsx.applyDiff(container, vdom);
+  }
+
+  // Handle browser back/forward
+  window.addEventListener("popstate", () => {
+    if (rootElement) {
+      const vdom = rootElement.render();
+      if (vdom) {
+        webjsx.applyDiff(rootElement.container, vdom);
+      }
+    }
+  });
+}
+
+/**
+ * Navigates to a new URL and triggers a re-render
+ */
+export function goto(path: string, query?: Record<string, string>) {
+  try {
+    let url = path;
+
+    if (query && Object.keys(query).length > 0) {
+      const searchParams = new URLSearchParams();
+      for (const [key, value] of Object.entries(query)) {
+        if (value !== undefined && value !== null) {
+          searchParams.append(
+            encodeURIComponent(key),
+            encodeURIComponent(value)
+          );
+        }
+      }
+      url += `?${searchParams.toString()}`;
+    }
+
+    window.history.pushState({}, "", url);
+
+    // Trigger re-render after navigation
+    if (rootElement) {
+      const vdom = rootElement.render();
+      if (vdom) {
+        webjsx.applyDiff(rootElement.container, vdom);
+      }
+    }
+  } catch (error) {
+    console.error("Navigation failed:", error);
+  }
+}
+
 /**
  * Matches current URL against a pattern and renders component if matched
  */
@@ -130,5 +200,3 @@ export function match<Pattern extends string>(
     return undefined;
   }
 }
-
-export type { VNode } from "webjsx";

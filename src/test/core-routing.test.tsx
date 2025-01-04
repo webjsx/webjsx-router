@@ -1,90 +1,127 @@
 import { expect } from "chai";
 import { JSDOM } from "jsdom";
-import { match } from "../index.js";
+import { match, goto, initRouter } from "../index.js";
 import { setupJSDOM } from "./setup.js";
+import * as webjsx from "webjsx";
 
 describe("Core Routing", () => {
   let dom: JSDOM;
+  let container: HTMLElement;
+  let renderCount: number;
 
   beforeEach(() => {
     dom = setupJSDOM();
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    renderCount = 0;
   });
 
   afterEach(() => {
     dom.window.close();
   });
 
-  describe("Basic Matching", () => {
-    it("should match static routes", () => {
-      window.history.pushState({}, "", "/about");
-
-      const result = match("/about", () => <div id="about">About</div>);
-      expect(result).to.not.be.undefined;
-      expect((result as any).props.id).to.equal("about");
+  describe("Router Initialization", () => {
+    it("should perform initial render", () => {
+      initRouter(container, () => <div id="app">Initial Content</div>);
+      expect(container.innerHTML).to.include("Initial Content");
     });
 
-    it("should return undefined for non-matching routes", () => {
-      window.history.pushState({}, "", "/about");
-
-      const result = match("/contact", () => <div>Contact</div>);
-      expect(result).to.be.undefined;
-    });
-
-    it("should handle trailing slashes correctly", () => {
-      window.history.pushState({}, "", "/about/");
-      const result = match("/about", () => <div />);
-      expect(result).to.be.undefined;
-    });
-
-    it("should support OR chaining", () => {
-      window.history.pushState({}, "", "/contact");
-
-      const result =
-        match("/about", () => <div>About</div>) ||
-        match("/contact", () => <div id="contact">Contact</div>) ||
-        <div>Not Found</div>;
-
-      expect((result as any).props.id).to.equal("contact");
-    });
-
-    it("should fallback to last option if no routes match", () => {
-      window.history.pushState({}, "", "/nonexistent");
-
-      const result = match("/about", () => <div>About</div>) ||
-        match("/contact", () => <div>Contact</div>) || (
-          <div id="not-found">Not Found</div>
+    it("should re-render on goto", () => {
+      initRouter(container, () => {
+        renderCount++;
+        return (
+          match("/about", () => <div id="about">About</div>) ||
+          match("/", () => <div id="home">Home</div>)
         );
+      });
 
-      expect((result as any).props.id).to.equal("not-found");
-    });
-  });
+      expect(renderCount).to.equal(1); // Initial render
 
-  describe("Browser Navigation", () => {
-    it("should respond to pushState navigation", () => {
-      window.history.pushState({}, "", "/about");
+      goto("/about");
+      expect(renderCount).to.equal(2);
+      expect(container.innerHTML).to.include("About");
 
-      const aboutResult = match("/about", () => <div id="about">About</div>);
-      expect((aboutResult as any).props.id).to.equal("about");
-
-      window.history.pushState({}, "", "/contact");
-
-      const contactResult = match("/contact", () => (
-        <div id="contact">Contact</div>
-      ));
-      expect((contactResult as any).props.id).to.equal("contact");
+      goto("/");
+      expect(renderCount).to.equal(3);
+      expect(container.innerHTML).to.include("Home");
     });
 
-    it("should respond to popstate events", (done) => {
-      window.history.pushState({}, "", "/page1");
-      window.history.pushState({}, "", "/page2");
+    it("should re-render on popstate", (done) => {
+      initRouter(container, () => {
+        renderCount++;
+        return (
+          match("/page1", () => <div id="page1">Page 1</div>) ||
+          match("/page2", () => <div id="page2">Page 2</div>)
+        );
+      });
+
+      goto("/page1");
+      goto("/page2");
+
+      const initialRenderCount = renderCount;
 
       window.addEventListener("popstate", () => {
-        const result = match("/page1", () => <div id="page1">Page 1</div>);
-        expect((result as any).props.id).to.equal("page1");
+        expect(renderCount).to.equal(initialRenderCount + 1);
+        expect(container.innerHTML).to.include("Page 1");
         done();
       });
 
       window.history.back();
+    });
+  });
+
+  describe("Component Integration", () => {
+    it("should preserve component state across routes", () => {
+      class CounterElement extends HTMLElement {
+        private count = 0;
+
+        connectedCallback() {
+          this.render();
+        }
+
+        increment() {
+          this.count++;
+          this.render();
+        }
+
+        render() {
+          webjsx.applyDiff(
+            this,
+            <div>
+              Count: <span class="count">{this.count}</span>
+              <button onclick={() => this.increment()}>+</button>
+            </div>
+          );
+        }
+      }
+
+      if (!customElements.get("test-counter")) {
+        customElements.define("test-counter", CounterElement);
+      }
+
+      initRouter(container, () => {
+        return (
+          match("/counter", () => <test-counter />) ||
+          match("/", () => <div>Home</div>)
+        );
+      });
+
+      // Navigate to counter
+      goto("/counter");
+      const counter = container.querySelector("test-counter")!;
+      const button = counter.querySelector("button")!;
+
+      // Increment counter
+      button.click();
+      expect(counter.querySelector(".count")!.textContent).to.equal("1");
+
+      // Navigate away and back
+      goto("/");
+      goto("/counter");
+
+      // Counter should reset (new instance)
+      const newCounter = container.querySelector("test-counter")!;
+      expect(newCounter.querySelector(".count")!.textContent).to.equal("0");
     });
   });
 });

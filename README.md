@@ -17,22 +17,40 @@ npm install webjsx-router
 - Trailing slash handling
 - Chain multiple routes with fallbacks
 - No external dependencies
+- Handles browser navigation events
 
 ## Usage
 
-Use the `match` function directly in your render methods to handle different routes:
+Initialize the router with a root container and render function:
 
 ```ts
-import { match } from "webjsx-router";
+import { match, goto, initRouter } from "webjsx-router";
+import * as webjsx from "webjsx";
 
-function render() {
-  return (
-    match("/users/:id", (params, query) => (
-      <user-details id={params.id} tab={query.tab} />
+// Initialize router with routing logic
+const container = document.getElementById("app")!;
+initRouter(
+  container,
+  () =>
+    match("/users/:id", (params) => (
+      <user-details id={params.id} onBack={() => goto("/users")} />
     )) ||
     match("/users", () => <user-list />) || <not-found />
-  );
-}
+);
+```
+
+### Navigation
+
+Use the `goto` function to navigate between routes:
+
+```ts
+import { goto } from "webjsx-router";
+
+// Simple navigation
+goto("/users");
+
+// With query parameters
+goto("/search", { q: "test", sort: "desc" });
 ```
 
 ### URL Patterns
@@ -89,13 +107,95 @@ match("/users", (params, query) => {
 Chain multiple routes with the OR operator (`||`). The last route acts as a fallback:
 
 ```ts
-function render() {
-  return (
-    match("/users/:id", (params) => <user-details id={params.id} />) ||
-    match("/users", () => <user-list />) ||
-    match("/about", () => <about-page />) || <not-found /> // Fallback route
-  );
-}
+match("/users/:id", (params) => <user-details id={params.id} />) ||
+  match("/users", () => <user-list />) ||
+  match("/about", () => <about-page />) || <not-found />; // Fallback route
+```
+
+### Browser Navigation
+
+The router automatically handles browser back/forward navigation and updates the view accordingly. No additional setup required.
+
+### Complete HTML Example
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Webjsx Router Example</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      import { match, goto, initRouter } from "webjsx-router";
+      import * as webjsx from "webjsx";
+
+      // Define custom elements
+      class UserList extends HTMLElement {
+        connectedCallback() {
+          webjsx.applyDiff(
+            this,
+            <div>
+              <h1>Users</h1>
+              <button onclick={() => goto("/users/1")}>View User 1</button>
+              <button onclick={() => goto("/users/2")}>View User 2</button>
+            </div>
+          );
+        }
+      }
+
+      class UserDetails extends HTMLElement {
+        static get observedAttributes() {
+          return ["id"];
+        }
+
+        connectedCallback() {
+          this.render();
+        }
+
+        attributeChangedCallback() {
+          this.render();
+        }
+
+        render() {
+          const id = this.getAttribute("id");
+          webjsx.applyDiff(
+            this,
+            <div>
+              <h1>User {id}</h1>
+              <button onclick={() => goto("/users")}>Back to List</button>
+            </div>
+          );
+        }
+      }
+
+      class NotFound extends HTMLElement {
+        connectedCallback() {
+          webjsx.applyDiff(
+            this,
+            <div>
+              <h1>404 Not Found</h1>
+              <button onclick={() => goto("/users")}>Go to Users</button>
+            </div>
+          );
+        }
+      }
+
+      customElements.define("user-list", UserList);
+      customElements.define("user-details", UserDetails);
+      customElements.define("not-found", NotFound);
+
+      // Initialize router with routing logic
+      const container = document.getElementById("app");
+      initRouter(
+        container,
+        () =>
+          match("/users/:id", (params) => <user-details id={params.id} />) ||
+          match("/users", () => <user-list />) || <not-found />
+      );
+    </script>
+  </body>
+</html>
 ```
 
 ## License
